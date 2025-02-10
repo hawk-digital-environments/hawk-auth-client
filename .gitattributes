@@ -1,0 +1,34 @@
+* text=auto eol=lf
+
+.gitignore text
+.htaccess text
+
+*.blade.php text diff=html
+*.css text diff=css
+*.htm text diff=html
+*.html text diff=html
+*.md text diff=markdown
+*.php text diff=php
+
+*.js text
+*.xml text
+*.txt text
+*.ini text
+*.inc text
+*.sh text
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.gz binary
+*.zip binary
+*.7z binary
+*.webp binary
+*.pdf binary
+*.ttf binary
+*.woff binary

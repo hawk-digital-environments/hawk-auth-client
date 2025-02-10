@@ -1,0 +1,34 @@
+{
+  "name": "hawk/auth-client",
+  "description": "A wrapper around the keycloak authentication service to provide a fully fledged authentication and authorization system",
+  "type": "project",
+  "license": "Apache-2.0",
+  "require": {
+    "php": "^8.3",
+    "league/oauth2-client": "^2.8",
+    "psr/clock": "^1.0",
+    "psr/log": "^3.0"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest",
+    "phpunit/phpunit": "^11.5.6",
+    "neunerlei/dbg": "^2.1",
+    "psr/simple-cache": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Hawk\\AuthClient\\": "src/",
+      "Hawk\\AuthClient\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test:unit": "phpunit --testsuite unit --exclude-group integration",
+    "test:unit:coverage": "XDEBUG_MODE=coverage phpunit --testsuite unit --exclude-group integration --coverage-html ./.phpunit.coverage; cp ./tests/coverage.dark.css .phpunit.coverage/_css/custom.css",
+    "test:unit:coverage:clover": "XDEBUG_MODE=coverage phpunit --testsuite unit --coverage-clover Tests/Coverage.xml"
+  },
+  "config": {
+    "allow-plugins": {
+      "0.0.0/composer-include-files": true
+    }
+  }
+}

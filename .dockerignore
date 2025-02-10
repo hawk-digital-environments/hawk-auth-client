@@ -1,0 +1,6 @@
+.env
+.gitattributes
+.git
+docker-compose.yml
+Dockerfile
+bin

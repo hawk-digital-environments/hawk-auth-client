@@ -1,0 +1,27 @@
+# IDEA Code Style
+.idea/*
+!.idea/copyright/
+!.idea/copyright/*
+!.idea/codeStyles/
+!.idea/codeStyles/*
+
+# Credentials
+/auth.json
+
+# Log files
+*.log
+
+# Dependencies
+/node_modules
+/vendor
+
+# Editor files
+/.fleet
+/.nova
+/.vscode
+/.zed
+
+# PHPUnit
+.phpunit.coverage
+.phpunit.result.cache
+.phpunit.cache
