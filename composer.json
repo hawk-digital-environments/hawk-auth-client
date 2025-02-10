@@ -1,5 +1,5 @@
 {
-  "name": "hawk/auth-client",
+  "name": "hawk-hhg/auth-client",
   "description": "A wrapper around the keycloak authentication service to provide a fully fledged authentication and authorization system",
   "type": "project",
   "license": "Apache-2.0",
