@@ -38,13 +38,3 @@ jobs:
 
       - name: Run PHPunit
         run: composer run test:unit:coverage:clover
-
-  release:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v1
-      - name: Create Changelog and bump release version
-        uses: labor-digital/conventional-release-action@master
-        with:
-          github-token: ${{ secrets.github_token }}
