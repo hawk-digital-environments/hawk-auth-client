@@ -5,32 +5,6 @@ using [hawk-keycloak-auth-server](https://github.com/HAWK-Digital-Environments/h
 features). The library provides a sophisticated way to build microservices with secure authentication, authorization,
 and user management.
 
-## Architecture
-
-The library is built on a layered architecture that provides clear separation of concerns:
-
-```mermaid
-graph TD
-  A[AuthClient] --> B[Authentication Layer]
-  A --> C[User Management Layer]
-  A --> D[Permission Layer]
-  A --> E[Profile Layer]
-  
-  B --> B1[StatefulAuth]
-  B --> B2[StatelessAuth]
-  B --> B3[KeycloakProvider]
-  
-  C --> C1[UserStorage]
-  C --> C2[GroupStorage]
-  C --> C3[RoleStorage]
-  
-  D --> D1[Guard]
-  D --> D2[PermissionStorage]
-  
-  E --> E1[ProfileStructure]
-  E --> E2[ProfileUpdater]
-```
-
 ### Core Components
 
 - **Authentication Layer**: Handles both stateful (session-based) and stateless (token-based) authentication
@@ -122,16 +96,6 @@ $client = new AuthClient(
     // Optional: internal Keycloak URL for Docker environments
     internalKeycloakUrl: 'http://keycloak:8080'
 );
-```
-
-### Environment Variables
-
-```env
-PUBLIC_KEYCLOAK_URL=https://keycloak.example.com
-INTERNAL_KEYCLOAK_URL=http://keycloak:8080 # Optional, for Docker
-REALM=your-realm
-CLIENT_ID=your-client-id
-CLIENT_SECRET=your-client-secret
 ```
 
 ## Examples
