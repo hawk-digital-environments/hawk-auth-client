@@ -47,6 +47,36 @@ class ProfileStructureTest extends TestCase
         );
     }
 
+    public function testItReturnsGroupsAndGlobalGroups(): void
+    {
+        $config = $this->createStub(ConnectionConfig::class);
+        $config->method('getClientId')->willReturn('client1');
+        $data = $this->createMock(ProfileStructureData::class);
+        $invocation = $this->exactly(2);
+        $data->expects($invocation)->method('getGroups')->with($config, $this->callback(function ($clientId) use ($invocation) {
+            if ($invocation->numberOfInvocations() === 1) {
+                return $clientId === false;
+            }
+            return $clientId === null;
+        }))->willReturn(
+            [['name' => 'global-group']],
+            [['name' => 'hawk.client1.group1'], ['name' => 'hawk.client1.group2']]
+        );
+        $data->method('getGroup')->willReturn([]);
+
+        $sut = new ProfileStructure($config, $data);
+
+        $groups = iterator_to_array($sut->getGroupsWithGlobals(), false);
+        $this->assertContainsOnlyInstancesOf(ProfileGroup::class, $groups);
+        $this->assertEquals(
+            ['global-group', 'group1', 'group2'],
+            array_map(
+                fn(ProfileGroup $group) => $group->getName(),
+                $groups
+            )
+        );
+    }
+
     public function testItCanCheckIfAGroupExists(): void
     {
         $config = $this->createStub(ConnectionConfig::class);
@@ -100,6 +130,35 @@ class ProfileStructureTest extends TestCase
                 $fields
             )
         );
+    }
+
+    public function testItReturnsFieldsAndGlobalFields(): void
+    {
+        $config = $this->createStub(ConnectionConfig::class);
+        $config->method('getClientId')->willReturn('client1');
+        $data = $this->createMock(ProfileStructureData::class);
+        $invocation = $this->exactly(2);
+        $data->expects($invocation)->method('getFields')->with($config, $this->callback(function ($clientId) use ($invocation) {
+            if ($invocation->numberOfInvocations() === 1) {
+                return $clientId === false;
+            }
+            return $clientId === null;
+        }), null)->willReturn(
+            [['name' => 'global-field']],
+            [['name' => 'hawk.client1.field1'], ['name' => 'hawk.client1.field2']]
+        );
+        $data->method('getField')->willReturn([]);
+
+        $sut = new ProfileStructure($config, $data);
+
+        $fields = iterator_to_array($sut->getFieldsWithGlobals(), false);
+        $this->assertContainsOnlyInstancesOf(ProfileField::class, $fields);
+        $this->assertEquals(
+            ['global-field', 'field1', 'field2'],
+            array_map(
+                fn(ProfileField $field) => $field->getName(),
+                $fields
+            ));
     }
 
     public function testItCanCheckIfAFieldExists(): void

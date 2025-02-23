@@ -33,13 +33,16 @@ class ProfileStorage
      * Returns the profile of the given user.
      * If the profile has already been resolved, it will be returned from the cache.
      * @param User $user The user to get the profile for.
+     * @param bool|null $asAdminUser True if the profile should be fetched as an admin user, false otherwise (fetch as the user).
      * @return UserProfile
      */
-    public function getProfileOfUser(User $user): UserProfile
+    public function getProfileOfUser(User $user, bool|null $asAdminUser = null): UserProfile
     {
-        return $this->profiles[$user->getId()] ??= $this->cache->remember(
-            'keycloak.profile.' . $user->getId(),
-            valueGenerator: fn() => $this->keycloakApiClient->fetchUserProfile($user),
+        $asAdminUser = $asAdminUser ?? false;
+        $keySuffix = $asAdminUser ? '.admin' : '.user';
+        return $this->profiles[$user->getId() . $keySuffix] ??= $this->cache->remember(
+            'keycloak.profile.' . $user->getId() . $keySuffix,
+            valueGenerator: fn() => $this->keycloakApiClient->fetchUserProfile($user, $asAdminUser),
             valueToCache: fn(UserProfile $profile) => $profile->jsonSerialize(),
             cacheToValue: fn(array $data) => UserProfile::fromArray($this->config, $data)
         );
@@ -49,11 +52,12 @@ class ProfileStorage
      * Updates the profile of the given user.
      * @param User $user The user to update the profile for.
      * @param array $data The data to update the profile with.
+     * @param bool|null $asAdminUser True if the update should be done as an admin user, false otherwise (update as the user).
      * @return void
      */
-    public function updateProfile(User $user, array $data): void
+    public function updateProfile(User $user, array $data, bool|null $asAdminUser = null): void
     {
-        $this->keycloakApiClient->updateUserProfile($user, $data);
+        $this->keycloakApiClient->updateUserProfile($user, $data, $asAdminUser ?? false);
     }
 
     /**

@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Tests\Keycloak\Query;
 use Hawk\AuthClient\Cache\CacheAdapterInterface;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\FetchRoleMembersIdStreamQuery;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(FetchRoleMembersIdStreamQuery::class)]
@@ -15,11 +16,12 @@ class FetchRoleMembersIdStreamQueryTest extends KeycloakQueryTestCase
 {
     public function testItCanFetchRoleMembers(): void
     {
+        $roleId = new DummyUuid();
         $this->client->expects($this->once())
             ->method('request')
             ->with(
                 'GET',
-                'realms/{realm}/hawk/roles/role-id/members',
+                'realms/{realm}/hawk/roles/' . $roleId . '/members',
                 [
                     'query' => [
                         'first' => 0,
@@ -32,12 +34,12 @@ class FetchRoleMembersIdStreamQueryTest extends KeycloakQueryTestCase
         $cache = $this->createStub(CacheAdapterInterface::class);
         $cache->method('remember')->willReturnCallback(fn($key, $callback) => $callback());
 
-        $result = iterator_to_array($this->api->fetchRoleMemberIdStream('role-id', $cache));
+        $result = iterator_to_array($this->api->fetchRoleMemberIdStream($roleId, $cache));
 
         $this->assertCount(2, $result);
 
-        $this->assertSame('3cb3fda0-8580-43e1-a6cf-20e0ef07c85a', $result[0]);
-        $this->assertSame('3cb3fda0-8580-43e1-a6cf-20e0ef07c123', $result[1]);
+        $this->assertSame('3cb3fda0-8580-43e1-a6cf-20e0ef07c85a', (string)$result[0]);
+        $this->assertSame('3cb3fda0-8580-43e1-a6cf-20e0ef07c123', (string)$result[1]);
     }
 
 }

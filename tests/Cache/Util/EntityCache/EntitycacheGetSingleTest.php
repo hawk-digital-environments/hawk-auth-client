@@ -6,6 +6,8 @@ namespace Hawk\AuthClient\Tests\Cache\Util\EntityCache;
 
 use Hawk\AuthClient\Cache\CacheAdapterInterface;
 use Hawk\AuthClient\Cache\Util\AbstractEntityCache;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversMethod;
 
 #[CoversMethod(AbstractEntityCache::class, 'getOne')]
@@ -14,7 +16,7 @@ class EntitycacheGetSingleTest extends EntityCacheTestCase
     public function testItCanGetSingleWithNothingCached(): void
     {
         $v1 = (object)['value' => 1];
-        $id = 'foo';
+        $id = new DummyUuid();
 
         $cache = $this->createMock(CacheAdapterInterface::class);
         $cache->expects($this->once())
@@ -26,9 +28,9 @@ class EntitycacheGetSingleTest extends EntityCacheTestCase
             ->method('set')
             ->with($id, ['v' => 'O:8:"stdClass":1:{s:5:"value";i:1;}'], null);
 
-        $fetchItems = function (string ...$ids) use ($v1): array {
-            $this->assertEquals(['foo'], $ids);
-            return ['foo' => $v1];
+        $fetchItems = function (Uuid ...$ids) use ($v1, $id): iterable {
+            $this->assertEquals([$id], $ids);
+            yield $id => $v1;
         };
 
         $sut = $this->createSut(cache: $cache, fetchItems: $fetchItems);
@@ -41,7 +43,7 @@ class EntitycacheGetSingleTest extends EntityCacheTestCase
     public function testItCanGetSingleWithItemCached(): void
     {
         $v1 = (object)['value' => 1];
-        $id = 'foo';
+        $id = new DummyUuid();
 
         $cache = $this->createMock(CacheAdapterInterface::class);
         $cache->expects($this->once())
@@ -62,7 +64,7 @@ class EntitycacheGetSingleTest extends EntityCacheTestCase
 
     public function testItReturnsNullIfItemWasNotFound(): void
     {
-        $id = 'foo';
+        $id = new DummyUuid();
 
         $cache = $this->createMock(CacheAdapterInterface::class);
         $cache->expects($this->once())
@@ -70,8 +72,8 @@ class EntitycacheGetSingleTest extends EntityCacheTestCase
             ->with($id)
             ->willReturn(null);
 
-        $fetchItems = function (string ...$ids): array {
-            $this->assertEquals(['foo'], $ids);
+        $fetchItems = function (Uuid ...$ids) use ($id): array {
+            $this->assertEquals([$id], $ids);
             return [];
         };
 
@@ -85,7 +87,7 @@ class EntitycacheGetSingleTest extends EntityCacheTestCase
 
     public function testItReturnsNullIfAPreviousFetchDidNotFindAnItem(): void
     {
-        $id = 'foo';
+        $id = new DummyUuid();
 
         $cache = $this->createMock(CacheAdapterInterface::class);
         $cache->expects($this->once())
@@ -103,7 +105,7 @@ class EntitycacheGetSingleTest extends EntityCacheTestCase
 
     public function testItReturnsNullIfAnItemIsNotCachedButItShouldNotFetchMissing(): void
     {
-        $id = 'foo';
+        $id = new DummyUuid();
 
         $cache = $this->createMock(CacheAdapterInterface::class);
         $cache->expects($this->once())

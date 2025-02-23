@@ -25,3 +25,14 @@
 .phpunit.coverage
 .phpunit.result.cache
 .phpunit.cache
+
+# Example files
+examples/docker-compose.override.yml
+examples/app/vendor
+examples/app/public/frontend
+
+# Examples (keycloak infrastructure)
+docker-compose.override.yml
+
+# Frontend
+/frontend/node_modules

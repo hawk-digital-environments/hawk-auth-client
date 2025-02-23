@@ -6,13 +6,14 @@ namespace Hawk\AuthClient\Keycloak\Query;
 
 
 use GuzzleHttp\ClientInterface;
+use Hawk\AuthClient\Util\Uuid;
 use Psr\Http\Message\ResponseInterface;
 
 class FetchGroupMemberIdStreamQuery extends AbstractChunkedQuery
 {
-    private string $groupId;
+    private Uuid $groupId;
 
-    public function __construct(string $groupId)
+    public function __construct(Uuid $groupId)
     {
         $this->groupId = $groupId;
     }
@@ -34,7 +35,7 @@ class FetchGroupMemberIdStreamQuery extends AbstractChunkedQuery
 
     #[\Override] protected function dataToItem(mixed $dataItem): mixed
     {
-        return $dataItem['id'];
+        return new Uuid($dataItem['id']);
     }
 
 

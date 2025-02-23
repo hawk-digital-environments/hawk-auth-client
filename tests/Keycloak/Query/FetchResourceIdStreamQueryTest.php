@@ -9,6 +9,7 @@ use Hawk\AuthClient\Cache\CacheAdapterInterface;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\FetchResourceIdStreamQuery;
 use Hawk\AuthClient\Resources\Value\ResourceConstraints;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -26,24 +27,24 @@ class FetchResourceIdStreamQueryTest extends KeycloakQueryTestCase
         ];
         yield 'ids constraints' => [
             (new ResourceConstraints())
-                ->withIds('resource-id-1', 'resource-id-2', 'resource-id-3')
+                ->withIds(new DummyUuid(1), new DummyUuid(2), new DummyUuid(3))
                 // Those should be automatically disabled
                 ->withName('resource-name')
                 ->withUri('resource-uri')
                 ->withType('resource-type'),
             [
-                'ids' => 'resource-id-1,resource-id-2,resource-id-3',
+                'ids' => implode(',', [new DummyUuid(1), new DummyUuid(2), new DummyUuid(3)]),
                 'idsOnly' => 'true'
             ],
         ];
         yield 'id constraints with allowed filters' => [
             (new ResourceConstraints())
-                ->withIds('resource-id-1', 'resource-id-2', 'resource-id-3')
+                ->withIds(new DummyUuid(1), new DummyUuid(2), new DummyUuid(3))
                 ->withSharedWith('shared-with')
                 ->withOwner('owner', true)
             ,
             [
-                'ids' => 'resource-id-1,resource-id-2,resource-id-3',
+                'ids' => implode(',', [new DummyUuid(1), new DummyUuid(2), new DummyUuid(3)]),
                 'sharedWith' => 'shared-with',
                 'owner' => 'owner',
                 'sharedOnly' => 'true',
@@ -82,8 +83,8 @@ class FetchResourceIdStreamQueryTest extends KeycloakQueryTestCase
     #[DataProvider('provideTestItDoesFetchResourceListData')]
     public function testItDoesFetchResourceList(ResourceConstraints|null $constraints, array $expectedQuery): void
     {
-        $response = $this->createStreamResponse('["resource-id-1", "resource-id-2", "resource-id-3"]');
-        $expectedResult = ['resource-id-1', 'resource-id-2', 'resource-id-3'];
+        $expectedResult = [new DummyUuid(1), new DummyUuid(2), new DummyUuid(3)];
+        $response = $this->createStreamResponse(json_encode($expectedResult));
         $cache = $this->createMock(CacheAdapterInterface::class);
         $cache->expects($this->once())
             ->method('remember')

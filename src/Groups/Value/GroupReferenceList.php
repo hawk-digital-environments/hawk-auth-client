@@ -68,7 +68,7 @@ class GroupReferenceList extends AbstractList
             // Special handling if a GroupInterface is given, because we can have more options to compare on
             if ($givenGroup instanceof Group) {
                 foreach ($this->items as $ref) {
-                    if ($ref->getType() === GroupReferenceTypeEnum::ID && (string)$ref === $givenGroup->getId()) {
+                    if ($ref->getType() === GroupReferenceTypeEnum::ID && (string)$ref === (string)$givenGroup->getId()) {
                         return true;
                     }
                     if ($ref->getType() === GroupReferenceTypeEnum::NAME && (string)$ref === $givenGroup->getName()) {

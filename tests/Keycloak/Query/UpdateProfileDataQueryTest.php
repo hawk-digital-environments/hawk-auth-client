@@ -14,6 +14,7 @@ use Hawk\AuthClient\Keycloak\Query\UpdateProfileDataQuery;
 use Hawk\AuthClient\Keycloak\Value\ConnectionConfig;
 use Hawk\AuthClient\Profiles\Value\ProfileFieldValidationError;
 use Hawk\AuthClient\Profiles\Value\UserProfile;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\Value\User;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -28,8 +29,9 @@ class UpdateProfileDataQueryTest extends KeycloakQueryTestCase
     public function testItCanUpdateTheUserProfileData(): void
     {
         $config = $this->createStub(ConnectionConfig::class);
+        $userId = new DummyUuid();
         $user = $this->createStub(User::class);
-        $user->method('getId')->willReturn('user-id');
+        $user->method('getId')->willReturn($userId);
 
         $profile = new UserProfile(
             $config,
@@ -57,17 +59,10 @@ class UpdateProfileDataQueryTest extends KeycloakQueryTestCase
         ];
 
         $expectedPayload = [
-            'id' => 'user-id',
             'username' => 'new-username',
             'firstName' => 'new-first-name',
             'lastName' => 'new-last-name',
             'email' => 'new-email',
-            'emailVerified' => true,
-            'userProfileMetadata' => [
-                'structure' => 'data',
-                'attributes' => [],
-                'groups' => []
-            ],
             'attributes' => [
                 'key' => 'new-value'
             ]
@@ -76,16 +71,52 @@ class UpdateProfileDataQueryTest extends KeycloakQueryTestCase
         $this->client->expects($this->once())
             ->method('request')
             ->with(
-                'PUT',
-                'realms/{realm}/hawk/profile/' . $user->getId(),
+                'PATCH',
+                'realms/{realm}/hawk/profile/' . $userId,
                 [
+                    'query' => [
+                        'mode' => 'user'
+                    ],
                     'json' => $expectedPayload
                 ]
             );
 
         $this->api = $this->createClientWithDummyProfile($user, $profile);
 
-        $this->api->updateUserProfile($user, $changeSet);
+        $this->api->updateUserProfile($user, $changeSet, false);
+    }
+
+    public function testItCanUpdateUserProfileDataAsAdmin(): void
+    {
+        $userId = new DummyUuid();
+        $user = $this->createStub(User::class);
+        $user->method('getId')->willReturn($userId);
+        $this->client->expects($this->once())
+            ->method('request')
+            ->with(
+                'PATCH',
+                'realms/{realm}/hawk/profile/' . $userId,
+                [
+                    'query' => [
+                        'mode' => 'user'
+                    ],
+                    'json' => [
+                        'attributes' => [
+                            'attribute' => ['value']
+                        ]
+                    ]
+                ]
+            );
+
+        $changeSet = [
+            'attribute' => ['value']
+        ];
+
+        $profile = $this->createStub(UserProfile::class);
+
+        $this->api = $this->createClientWithDummyProfile($user, $profile);
+
+        $this->api->updateUserProfile($user, $changeSet, false);
     }
 
     public function testItFailsToUpdateTheUserProfileDueToMissingPermissions(): void
@@ -99,7 +130,7 @@ class UpdateProfileDataQueryTest extends KeycloakQueryTestCase
 
         $this->api = $this->createClientWithDummyProfile($this->createStub(User::class), $this->createStub(UserProfile::class));
 
-        $this->api->updateUserProfile($this->createStub(User::class), []);
+        $this->api->updateUserProfile($this->createStub(User::class), [], false);
     }
 
     public function testItFailsToUpdateTheUserProfileDueToValidationError(): void
@@ -128,7 +159,7 @@ JSON;
 
         try {
             $this->api = $this->createClientWithDummyProfile($this->createStub(User::class), $this->createStub(UserProfile::class));
-            $this->api->updateUserProfile($this->createStub(User::class), []);
+            $this->api->updateUserProfile($this->createStub(User::class), [], false);
             $this->fail('Exception not thrown');
         } catch (\Throwable $e) {
             $this->assertInstanceOf(ProfileUpdateDataInvalidException::class, $e);
@@ -155,7 +186,7 @@ JSON;
         $this->expectException(ProfileUpdateFailedException::class);
 
         $this->api = $this->createClientWithDummyProfile($this->createStub(User::class), $this->createStub(UserProfile::class));
-        $this->api->updateUserProfile($this->createStub(User::class), []);
+        $this->api->updateUserProfile($this->createStub(User::class), [], false);
     }
 
     protected function createClientWithDummyProfile(User $user, UserProfile $profile): KeycloakApiClient

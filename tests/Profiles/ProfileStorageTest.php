@@ -10,6 +10,7 @@ use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Value\ConnectionConfig;
 use Hawk\AuthClient\Profiles\ProfileStorage;
 use Hawk\AuthClient\Profiles\Value\UserProfile;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\Value\User;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -57,8 +58,9 @@ class ProfileStorageTest extends TestCase
             'structure' => [],
             'additionalData' => []
         ];
+        $id = new DummyUuid();
         $user = $this->createStub(User::class);
-        $user->method('getId')->willReturn('foo');
+        $user->method('getId')->willReturn($id);
         $profile = $this->createStub(UserProfile::class);
         $profile->method('jsonSerialize')->willReturn($profileData);
         $api = $this->createMock(KeycloakApiClient::class);
@@ -70,8 +72,8 @@ class ProfileStorageTest extends TestCase
                 callable $valueGenerator,
                 callable $valueToCache,
                 callable $cacheToValue
-            ) use ($profile, $profileData) {
-                $this->assertEquals('keycloak.profile.foo', $key);
+            ) use ($profile, $profileData, $id) {
+                $this->assertEquals('keycloak.profile.' . $id . '.user', $key);
                 $this->assertSame($profile, $valueGenerator());
                 $this->assertEquals($profileData, $valueToCache($profile));
                 $this->assertInstanceOf(UserProfile::class, $cacheToValue($profileData));
@@ -79,6 +81,48 @@ class ProfileStorageTest extends TestCase
             });
 
         $result = (new ProfileStorage($config, $cache, $api))->getProfileOfUser($user);
+        $this->assertSame($profile, $result);
+    }
+
+    public function testItCachesUserProfileAsAdminCorrectly(): void
+    {
+        $config = $this->createStub(ConnectionConfig::class);
+        $profileData = [
+            UserProfile::ATTRIBUTE_USERNAME => 'foo',
+            UserProfile::ATTRIBUTE_FIRST_NAME => 'bar',
+            UserProfile::ATTRIBUTE_LAST_NAME => 'baz',
+            UserProfile::ATTRIBUTE_EMAIL => 'qux@quox.de',
+            'attributes' => [
+                'hawk.clientId.field' => [
+                    'foo'
+                ]
+            ],
+            'structure' => [],
+            'additionalData' => []
+        ];
+        $id = new DummyUuid();
+        $user = $this->createStub(User::class);
+        $user->method('getId')->willReturn($id);
+        $profile = $this->createStub(UserProfile::class);
+        $profile->method('jsonSerialize')->willReturn($profileData);
+        $api = $this->createMock(KeycloakApiClient::class);
+        $api->expects($this->once())->method('fetchUserProfile')->with($user)->willReturn($profile);
+        $cache = $this->createMock(CacheAdapterInterface::class);
+        $cache->expects($this->once())->method('remember')
+            ->willReturnCallback(function (
+                string   $key,
+                callable $valueGenerator,
+                callable $valueToCache,
+                callable $cacheToValue
+            ) use ($profile, $profileData, $id) {
+                $this->assertEquals('keycloak.profile.' . $id . '.admin', $key);
+                $this->assertSame($profile, $valueGenerator());
+                $this->assertEquals($profileData, $valueToCache($profile));
+                $this->assertInstanceOf(UserProfile::class, $cacheToValue($profileData));
+                return $profile;
+            });
+
+        $result = (new ProfileStorage($config, $cache, $api))->getProfileOfUser($user, true);
         $this->assertSame($profile, $result);
     }
 

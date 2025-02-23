@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Hawk\AuthClient\Tests\Users\Value;
 
 
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\Value\UserConstraints;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -55,11 +56,13 @@ class UserConstraintsTest extends TestCase
 
     public function testItCanGetAndSetIdFilter(): void
     {
+        $id1 = new DummyUuid(1);
+        $id2 = new DummyUuid(2);
         $sut = new UserConstraints();
         $this->assertEmpty($sut->getIds());
-        $sut2 = $sut->withIds('83335934-fc49-4c59-8199-de47c3d03ac5', '83335934-fc49-4c59-8199-de47c3d03ac5', '83335934-fc49-4c59-8199-de47c3d03ac3');
+        $sut2 = $sut->withIds($id1, $id2, $id1);
         $this->assertNotSame($sut, $sut2);
-        $this->assertSame(['83335934-fc49-4c59-8199-de47c3d03ac5', '83335934-fc49-4c59-8199-de47c3d03ac3'], $sut2->getIds());
+        $this->assertSame([$id1, $id2], $sut2->getIds());
         $this->assertEmpty($sut->getIds());
     }
 }

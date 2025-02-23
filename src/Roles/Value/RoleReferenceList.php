@@ -29,7 +29,7 @@ class RoleReferenceList extends AbstractList
             // Special handling if a RoleInterface is given, because we can have more options to compare on
             if ($givenRole instanceof Role) {
                 foreach ($this->items as $ref) {
-                    if ($ref->getType() === RoleReferenceTypeEnum::ID && (string)$ref === $givenRole->getId()) {
+                    if ($ref->getType() === RoleReferenceTypeEnum::ID && (string)$ref === (string)$givenRole->getId()) {
                         return true;
                     }
                     if ($ref->getType() === RoleReferenceTypeEnum::NAME && (string)$ref === $givenRole->getName()) {

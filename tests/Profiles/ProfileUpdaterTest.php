@@ -21,7 +21,8 @@ class ProfileUpdaterTest extends TestCase
         $sut = new ProfileUpdater(
             $this->createStub(User::class),
             $this->createStub(ConnectionConfig::class),
-            $this->createStub(ProfileStorage::class)
+            $this->createStub(ProfileStorage::class),
+            false
         );
         $this->assertInstanceOf(ProfileUpdater::class, $sut);
     }
@@ -46,9 +47,9 @@ class ProfileUpdaterTest extends TestCase
         $config->method('getClientId')->willReturn('test-client-id');
 
         $profileStorage = $this->createMock(ProfileStorage::class);
-        $profileStorage->expects($this->once())->method('updateProfile')->with($user, $expectedChangeSet);
+        $profileStorage->expects($this->once())->method('updateProfile')->with($user, $expectedChangeSet, false);
 
-        $sut = new ProfileUpdater($user, $config, $profileStorage);
+        $sut = new ProfileUpdater($user, $config, $profileStorage, false);
 
         $sut->setUsername('test-username');
         $sut->setEmail('test-email', true);
@@ -58,6 +59,23 @@ class ProfileUpdaterTest extends TestCase
         $sut->set('test-attribute-2', 'test-value-2');
         $sut->set('test-attribute-2', 'test-value-3', 'other-client');
         $sut->set('test-attribute-2', 'test-value-4', false);
+        $sut->save();
+    }
+
+    public function testItForwardsAdminState(): void
+    {
+        $user = $this->createStub(User::class);
+        $profileStorage = $this->createMock(ProfileStorage::class);
+        $profileStorage->expects($this->once())->method('updateProfile')->with($user, $this->isArray(), true);
+
+        $sut = new ProfileUpdater(
+            $this->createStub(User::class),
+            $this->createStub(ConnectionConfig::class),
+            $profileStorage,
+            true
+        );
+
+        $sut->set('test-attribute', 'test-value');
         $sut->save();
     }
 

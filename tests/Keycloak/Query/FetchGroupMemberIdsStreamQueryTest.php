@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Tests\Keycloak\Query;
 use Hawk\AuthClient\Cache\CacheAdapterInterface;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\FetchGroupMemberIdStreamQuery;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(FetchGroupMemberIdStreamQuery::class)]
@@ -15,11 +16,12 @@ class FetchGroupMemberIdsStreamQueryTest extends KeycloakQueryTestCase
 {
     public function testItRequestsMemberIds(): void
     {
+        $groupId = new DummyUuid();
         $this->client->expects($this->once())
             ->method('request')
             ->with(
                 'GET',
-                'admin/realms/{realm}/groups/123/members',
+                'admin/realms/{realm}/groups/' . $groupId . '/members',
                 [
                     'query' => [
                         'briefRepresentation' => 'true',
@@ -80,12 +82,12 @@ JSON
         $cache = $this->createMock(CacheAdapterInterface::class);
         $cache->expects($this->once())->method('remember')->willReturnCallback(fn($_, $valueGenerator) => $valueGenerator());
 
-        $ids = $this->api->fetchGroupMemberIdStream('123', $cache);
+        $ids = $this->api->fetchGroupMemberIdStream($groupId, $cache);
         $this->assertEquals([
             '40c3b030-4bbf-4764-85a5-4cd1f01f6be0',
             '83bbff9e-1b5a-428b-a520-4ea7c57fe744',
             '949a6560-9fe4-4e6f-a6b2-ade3a38650fa'
-        ], iterator_to_array($ids));
+        ], array_map('strval', iterator_to_array($ids)));
     }
 
 }

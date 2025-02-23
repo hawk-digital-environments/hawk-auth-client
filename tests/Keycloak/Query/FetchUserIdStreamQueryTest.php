@@ -8,7 +8,9 @@ namespace Hawk\AuthClient\Tests\Keycloak\Query;
 use Hawk\AuthClient\Cache\CacheAdapterInterface;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\FetchUserIdStreamQuery;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\Value\UserConstraints;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -26,21 +28,21 @@ class FetchUserIdStreamQueryTest extends KeycloakQueryTestCase
         ];
         yield 'id constraints' => [
             (new UserConstraints())
-                ->withIds('user-id-1', 'user-id-2', 'user-id-3')
+                ->withIds(new DummyUuid(1), new DummyUuid(2), new DummyUuid(3))
                 // Those should be automatically disabled
                 ->withSearch('search')
                 ->withAttribute('attribute', 'value'),
             [
-                'ids' => 'user-id-1,user-id-2,user-id-3',
+                'ids' => implode(',', [new DummyUuid(1), new DummyUuid(2), new DummyUuid(3)]),
                 'idsOnly' => 'true'
             ],
         ];
         yield 'id constraints with allowed filters' => [
             (new UserConstraints())
-                ->withIds('user-id-1', 'user-id-2', 'user-id-3')
+                ->withIds(new DummyUuid(1), new DummyUuid(2), new DummyUuid(3))
                 ->withOnlyOnline(),
             [
-                'ids' => 'user-id-1,user-id-2,user-id-3',
+                'ids' => implode(',', [new DummyUuid(1), new DummyUuid(2), new DummyUuid(3)]),
                 'onlineOnly' => 'true',
                 'idsOnly' => 'true'
             ],
@@ -63,8 +65,8 @@ class FetchUserIdStreamQueryTest extends KeycloakQueryTestCase
     #[DataProvider('provideTestItDoesFetchUserListData')]
     public function testItDoesFetchUserList(UserConstraints|null $constraints, array $expectedQuery): void
     {
-        $response = $this->createStreamResponse('["user-id-1", "user-id-2", "user-id-3"]');
-        $expectedResult = ['user-id-1', 'user-id-2', 'user-id-3'];
+        $expectedResult = [new Uuid(new DummyUuid(1)), new Uuid(new DummyUuid(2)), new Uuid(new DummyUuid(3))];
+        $response = $this->createStreamResponse(json_encode($expectedResult));
         $cache = $this->createMock(CacheAdapterInterface::class);
         $cache->expects($this->once())
             ->method('remember')

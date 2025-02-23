@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Hawk\AuthClient\Tests\Resources\Value;
 
 
-use Hawk\AuthClient\Exception\InvalidUuidException;
 use Hawk\AuthClient\Exception\ResourceOwnerNotFoundException;
 use Hawk\AuthClient\Resources\Value\Resource;
 use Hawk\AuthClient\Resources\Value\ResourceScopes;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\UserStorage;
 use Hawk\AuthClient\Users\Value\User;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -22,10 +22,10 @@ class ResourceTest extends TestCase
     public function testItConstructs(): void
     {
         $sut = new Resource(
-            id: '83335934-fc49-4c59-8199-de47c3d03ac5',
+            id: new DummyUuid(),
             name: 'name',
             displayName: 'displayName',
-            ownerId: '83335934-fc49-4c59-8199-de47c3d03ac3',
+            ownerId: new DummyUuid(),
             isUserManaged: false,
             attributes: [],
             iconUri: null,
@@ -37,47 +37,11 @@ class ResourceTest extends TestCase
         $this->assertInstanceOf(Resource::class, $sut);
     }
 
-    public function testItFailsToConstructWithInvalidId(): void
-    {
-        $this->expectException(InvalidUuidException::class);
-        new Resource(
-            id: 'invalid',
-            name: 'name',
-            displayName: 'displayName',
-            ownerId: '83335934-fc49-4c59-8199-de47c3d03ac3',
-            isUserManaged: false,
-            attributes: [],
-            iconUri: null,
-            uris: [],
-            scopes: null,
-            type: null,
-            userStorage: $this->createStub(UserStorage::class)
-        );
-    }
-
-    public function testItFailsToConstructWithInvalidOwnerId(): void
-    {
-        $this->expectException(InvalidUuidException::class);
-        new Resource(
-            id: '83335934-fc49-4c59-8199-de47c3d03ac5',
-            name: 'name',
-            displayName: 'displayName',
-            ownerId: 'invalid',
-            isUserManaged: false,
-            attributes: [],
-            iconUri: null,
-            uris: [],
-            scopes: null,
-            type: null,
-            userStorage: $this->createStub(UserStorage::class)
-        );
-    }
-
     public static function providedTestItCanGetValuesCases(): iterable
     {
         yield 'id' => [
             fn(Resource $sut) => $sut->getId(),
-            '83335934-fc49-4c59-8199-de47c3d03ac5',
+            new DummyUuid(),
         ];
         yield 'name' => [
             fn(Resource $sut) => $sut->getName(),
@@ -195,10 +159,10 @@ class ResourceTest extends TestCase
     {
         $constructorArgs = array_merge(
             [
-                'id' => '83335934-fc49-4c59-8199-de47c3d03ac5',
+                'id' => new DummyUuid(),
                 'name' => 'name',
                 'displayName' => 'displayName',
-                'ownerId' => '83335934-fc49-4c59-8199-de47c3d03ac3',
+                'ownerId' => new DummyUuid(1),
                 'isUserManaged' => false,
                 'attributes' => [],
                 'iconUri' => null,
@@ -220,10 +184,10 @@ class ResourceTest extends TestCase
     {
         $this->expectException(ResourceOwnerNotFoundException::class);
         $sut = new Resource(
-            id: '83335934-fc49-4c59-8199-de47c3d03ac5',
+            id: new DummyUuid(),
             name: 'name',
             displayName: 'displayName',
-            ownerId: '83335934-fc49-4c59-8199-de47c3d03ac3',
+            ownerId: new DummyUuid(),
             isUserManaged: false,
             attributes: [],
             iconUri: null,
@@ -237,11 +201,13 @@ class ResourceTest extends TestCase
 
     public function testItCanBeJsonEncoded(): void
     {
+        $id = new DummyUuid();
+        $ownerId = new DummyUuid(2);
         $sut = new Resource(
-            id: '83335934-fc49-4c59-8199-de47c3d03ac5',
+            id: $id,
             name: 'name',
             displayName: 'displayName',
-            ownerId: '83335934-fc49-4c59-8199-de47c3d03ac3',
+            ownerId: $ownerId,
             isUserManaged: false,
             attributes: [],
             iconUri: null,
@@ -256,10 +222,10 @@ class ResourceTest extends TestCase
         $this->assertJsonStringEqualsJsonString(
             <<<JSON
 {
-  "id": "83335934-fc49-4c59-8199-de47c3d03ac5",
+  "id": "$id",
   "name": "name",
   "displayName": "displayName",
-  "owner": "83335934-fc49-4c59-8199-de47c3d03ac3",
+  "owner": "$ownerId",
   "isUserManaged": false,
   "attributes": [],
   "iconUri": null,

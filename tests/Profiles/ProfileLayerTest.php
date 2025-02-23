@@ -12,6 +12,7 @@ use Hawk\AuthClient\Profiles\ProfileStorage;
 use Hawk\AuthClient\Profiles\ProfileUpdater;
 use Hawk\AuthClient\Profiles\Structure\ProfileStructureBuilder;
 use Hawk\AuthClient\Profiles\Structure\Util\ProfileStructureData;
+use Hawk\AuthClient\Profiles\Value\UserProfile;
 use Hawk\AuthClient\Users\Value\User;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -48,6 +49,17 @@ class ProfileLayerTest extends TestCase
         $sut = new ProfileLayer($config, $apiClient, $storage);
 
         $this->assertInstanceOf(ProfileUpdater::class, $sut->update($this->createStub(User::class)));
+    }
+
+    public function testItCanGetOneAsAdmin(): void
+    {
+        $user = $this->createStub(User::class);
+        $profile = $this->createStub(UserProfile::class);
+        $storage = $this->createMock(ProfileStorage::class);
+        $storage->expects($this->once())->method('getProfileOfUser')->with($user, true)->willReturn($profile);
+        $sut = new ProfileLayer($this->createStub(ConnectionConfig::class), $this->createStub(KeycloakApiClient::class), $storage);
+        $result = $sut->getOneAsAdmin($user);
+        $this->assertSame($profile, $result);
     }
 
 }

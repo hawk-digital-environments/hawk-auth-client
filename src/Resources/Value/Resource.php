@@ -8,14 +8,14 @@ namespace Hawk\AuthClient\Resources\Value;
 use Hawk\AuthClient\Exception\ResourceOwnerNotFoundException;
 use Hawk\AuthClient\Users\UserStorage;
 use Hawk\AuthClient\Users\Value\User;
-use Hawk\AuthClient\Util\Validator;
+use Hawk\AuthClient\Util\Uuid;
 
 class Resource implements \JsonSerializable
 {
-    protected string $id;
+    protected Uuid $id;
     protected string $name;
     protected string|null $displayName;
-    protected string $ownerId;
+    protected Uuid $ownerId;
     protected bool $isUserManaged;
     protected array $attributes;
     protected string|null $iconUri;
@@ -25,10 +25,10 @@ class Resource implements \JsonSerializable
     protected ?string $type;
 
     public function __construct(
-        string              $id,
+        Uuid $id,
         string              $name,
         string|null         $displayName,
-        string              $ownerId,
+        Uuid $ownerId,
         bool                $isUserManaged,
         array|null          $attributes,
         string|null         $iconUri,
@@ -38,8 +38,6 @@ class Resource implements \JsonSerializable
         UserStorage         $userStorage
     )
     {
-        Validator::requireUuid($id);
-        Validator::requireUuid($ownerId);
         $this->id = $id;
         $this->name = $name;
         $this->displayName = $displayName;
@@ -55,9 +53,9 @@ class Resource implements \JsonSerializable
 
     /**
      * Returns the resource's unique UUID.
-     * @return string
+     * @return Uuid
      */
-    public function getId(): string
+    public function getId(): Uuid
     {
         return $this->id;
     }
@@ -185,7 +183,7 @@ class Resource implements \JsonSerializable
     #[\Override] public function jsonSerialize(): array
     {
         return [
-            'id' => $this->id,
+            'id' => (string)$this->id,
             'name' => $this->name,
             'displayName' => $this->displayName,
             'owner' => $this->ownerId,

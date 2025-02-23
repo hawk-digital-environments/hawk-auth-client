@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Tests\Keycloak\Query;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\FetchResourcesByIdsQuery;
 use Hawk\AuthClient\Resources\Value\Resource;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(FetchResourcesByIdsQuery::class)]
@@ -70,10 +71,12 @@ class FetchResourcesByIdsQueryTest extends KeycloakQueryTestCase
             )
             ->willReturn($this->createStreamResponse(self::RESPONSE));
 
+        $resourceId1 = new Uuid('a3735ddf-eb21-4ca5-8e2a-e510ecbf0d8d');
         $resource1 = $this->createStub(Resource::class);
-        $resource1->method('getId')->willReturn('a3735ddf-eb21-4ca5-8e2a-e510ecbf0d8d');
+        $resource1->method('getId')->willReturn($resourceId1);
+        $resourceId2 = new Uuid('14407d98-bc56-4189-b20c-a4312a122890');
         $resource2 = $this->createStub(Resource::class);
-        $resource2->method('getId')->willReturn('14407d98-bc56-4189-b20c-a4312a122890');
+        $resource2->method('getId')->willReturn($resourceId2);
 
         $this->resourceFactory->method('makeResourceFromKeycloakData')->willReturnMap(
             [
@@ -82,12 +85,15 @@ class FetchResourcesByIdsQueryTest extends KeycloakQueryTestCase
             ]
         );
 
-        $result = iterator_to_array($this->api->fetchResourcesByIds('a3735ddf-eb21-4ca5-8e2a-e510ecbf0d8d', '14407d98-bc56-4189-b20c-a4312a122890'));
+        $groups = [];
+        foreach ($this->api->fetchResourcesByIds($resourceId1, $resourceId2) as $k => $resource) {
+            $groups[(string)$k] = $resource;
+        }
 
-        $this->assertCount(2, $result);
+        $this->assertCount(2, $groups);
 
-        $this->assertSame($resource1, $result['a3735ddf-eb21-4ca5-8e2a-e510ecbf0d8d']);
-        $this->assertSame($resource2, $result['14407d98-bc56-4189-b20c-a4312a122890']);
+        $this->assertSame($resource1, $groups['a3735ddf-eb21-4ca5-8e2a-e510ecbf0d8d']);
+        $this->assertSame($resource2, $groups['14407d98-bc56-4189-b20c-a4312a122890']);
     }
 
 }

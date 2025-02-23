@@ -10,6 +10,7 @@ use Hawk\AuthClient\Groups\Value\GroupReferenceList;
 use Hawk\AuthClient\Profiles\Value\UserProfile;
 use Hawk\AuthClient\Roles\Value\RoleList;
 use Hawk\AuthClient\Roles\Value\RoleReferenceList;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\Value\User;
 use Hawk\AuthClient\Users\Value\UserClaims;
 use Hawk\AuthClient\Users\Value\UserContext;
@@ -22,7 +23,7 @@ class UserTest extends TestCase
     public function testItConstructs(): void
     {
         $sut = new User(
-            '83335934-fc49-4c59-8199-de47c3d03ac5',
+            new DummyUuid(),
             'service-account-clientId',
             $this->createStub(UserClaims::class),
             $this->createStub(RoleReferenceList::class),
@@ -34,6 +35,7 @@ class UserTest extends TestCase
 
     public function testItCanReturnTheValues(): void
     {
+        $id = new DummyUuid();
         $claims = $this->createStub(UserClaims::class);
         $roleReferenceList = $this->createStub(RoleReferenceList::class);
         $groupReferenceList = $this->createStub(GroupReferenceList::class);
@@ -45,7 +47,7 @@ class UserTest extends TestCase
         $context->method('getRoles')->with($roleReferenceList)->willReturn($roleList);
         $context->method('getProfile')->with($this->isInstanceOf(User::class))->willReturn($profile);
         $sut = new User(
-            '83335934-fc49-4c59-8199-de47c3d03ac5',
+            $id,
             'service-account-clientId',
             $claims,
             $roleReferenceList,
@@ -53,7 +55,7 @@ class UserTest extends TestCase
             $context
         );
 
-        $this->assertSame('83335934-fc49-4c59-8199-de47c3d03ac5', $sut->getId());
+        $this->assertSame($id, $sut->getId());
         $this->assertSame('service-account-clientId', $sut->getUsername());
         $this->assertSame($claims, $sut->getClaims());
         $this->assertSame($roleReferenceList, $sut->getRoleReferences());
@@ -65,15 +67,14 @@ class UserTest extends TestCase
 
     public function testItCanBeConvertedIntoAnArray(): void
     {
+        $id = new DummyUuid();
         $claims = $this->createStub(UserClaims::class);
         $claims->method('jsonSerialize')->willReturn(['claim' => 'value']);
-        $roleReferenceList = $this->createStub(RoleReferenceList::class);
-        $roleReferenceList->method('jsonSerialize')->willReturn(['role']);
-        $groupReferenceList = $this->createStub(GroupReferenceList::class);
-        $groupReferenceList->method('jsonSerialize')->willReturn(['group']);
+        $roleReferenceList = RoleReferenceList::fromScalarList('role');
+        $groupReferenceList = GroupReferenceList::fromScalarList('group');
         $context = $this->createMock(UserContext::class);
         $sut = new User(
-            '83335934-fc49-4c59-8199-de47c3d03ac5',
+            $id,
             'service-account-clientId',
             $claims,
             $roleReferenceList,
@@ -82,7 +83,7 @@ class UserTest extends TestCase
         );
 
         $expected = [
-            User::ARRAY_KEY_ID => '83335934-fc49-4c59-8199-de47c3d03ac5',
+            User::ARRAY_KEY_ID => (string)$id,
             User::ARRAY_KEY_USERNAME => 'service-account-clientId',
             User::ARRAY_KEY_CLAIMS => ['claim' => 'value'],
             User::ARRAY_KEY_ROLES => ['role'],

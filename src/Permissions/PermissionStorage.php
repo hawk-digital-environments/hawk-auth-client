@@ -59,7 +59,6 @@ class PermissionStorage
                 if ($resource->getOwner()->getId() === $user->getId()) {
                     return $resource->getScopes();
                 }
-
                 return $this->api->fetchGrantedResourceScopesForUser($resource, $user);
             },
             valueToCache: fn(ResourceScopes|null $scopes) => $scopes === null ? false : $scopes->jsonSerialize(),

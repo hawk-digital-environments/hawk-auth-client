@@ -194,4 +194,18 @@ class KeycloakProviderTest extends TestCase
         $this->assertSame($user, $sut->getResourceOwner($this->createStub(AccessToken::class)));
     }
 
+    public function testItCanReturnTheRedirectUrl(): void
+    {
+        $sut = new KeycloakProvider(
+            options: [
+                'redirectUri' => 'http://redirect.example.com',
+                'publicKeycloakUrl' => 'http://keycloak.example.com',
+                'internalKeycloakUrl' => 'http://keycloak',
+                'realm' => 'realm',
+            ],
+            collaborators: ['userFactory' => $this->createStub(UserFactory::class)]);
+
+        $this->assertEquals('http://redirect.example.com', $sut->getRedirectUrl());
+    }
+
 }

@@ -15,5 +15,49 @@ services:
       - ./:/var/www/html
     extra_hosts:
       - host.docker.internal:host-gateway
+  node:
+    container_name: ${PROJECT_NAME}-node
+    image: ${PROJECT_NAME}-node:dev
+    build:
+      context: .
+      target: app_node
+      args:
+        - DOCKER_RUNTIME=${DOCKER_RUNTIME:-docker}
+        - DOCKER_GID=${DOCKER_GID:-1000}
+        - DOCKER_UID=${DOCKER_UID:-1000}
+    restart: no
+    working_dir: /build
+    volumes:
+      - './frontend/:/build'
+      - ./:/var/www/html
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    entrypoint: bash
+    tty: true
+  examples:
+    container_name: ${PROJECT_NAME}-examples
+    build:
+      context: .
+      dockerfile: Examples.Dockerfile
+      args:
+        - DOCKER_RUNTIME=${DOCKER_RUNTIME:-docker}
+        - DOCKER_GID=${DOCKER_GID:-1000}
+        - DOCKER_UID=${DOCKER_UID:-1000}
+    volumes:
+      - ./examples:/var/www/html-examples
+      - ./examples/app:/var/www/html
+      - ./:/var/www/html-composer/auth-client
+      - ./frontend/dist:/var/www/html/public/frontend
+    environment:
+      - REDIRECT_URI=http://localhost:8099
+      - CLIENT_ID=YOUR_CLIENT_ID
+      - CLIENT_SECRET=YOUR_CLIENT_SECRET
+      - REALM=YOUR_REALM
+      - PUBLIC_KEYCLOAK_URL=http://localhost:8080
+      - INTERNAL_KEYCLOAK_URL=''
+    ports:
+      - ${DOCKER_PROJECT_IP:-127.0.0.1}:8099:80
+    extra_hosts:
+      - host.docker.internal:host-gateway
 volumes:
   php_socket: null

@@ -1,20 +1,14 @@
-
 # ===============================
-# app root
+# php environment
 # ===============================
 # syntax = docker/dockerfile:1.2
-FROM neunerlei/php:8.4-fpm-alpine as app_root
+FROM neunerlei/php:8.4-fpm-alpine AS app_dev
 ARG APP_ENV=prod
 ENV APP_ENV=${APP_ENV}
 # @see https://aschmelyun.com/blog/fixing-permissions-issues-with-docker-compose-and-php/
 ARG DOCKER_RUNTIME=docker
 ARG DOCKER_GID=1000
 ARG DOCKER_UID=1000
-
-# ===============================
-# app dev
-# ===============================
-FROM app_root AS app_dev
 
 ENV DOCKER_RUNTIME=${DOCKER_RUNTIME:-docker}
 ENV APP_ENV=dev
@@ -48,32 +42,22 @@ RUN --mount=type=cache,id=apk-cache,target=/var/cache/apk rm -rf /etc/apk/cache 
 
 USER www-data
 
+RUN composer global config --no-plugins allow-plugins.neunerlei/dbg-global true \
+    && composer global require neunerlei/dbg-global
+
 # ===============================
-# app prod
+# app root
 # ===============================
-FROM app_root AS app_prod
+FROM node:23-bookworm AS app_node
+ARG DOCKER_UID=1000
+ARG DOCKER_GID=1000
+ENV UID=${DOCKER_UID}
+ENV GID=${DOCKER_GID}
 
-RUN echo "umask 000" >> /root/.bashrc
+RUN set -eux; \
+    if getent passwd "${UID}"; then userdel -r "$(getent passwd "${UID}" | cut -d: -f1)"; fi; \
+    if getent group "${GID}"; then groupdel -f "$(getent group "${GID}" | cut -d: -f1)"; fi; \
+    groupadd --gid "$GID" builder || true; \
+    adduser --uid "$UID" --gid "$GID" --disabled-password --gecos "" builder
 
-###BUILDER_COPY --chown=www-data:www-data ###{dist}### /var/www/html/public/frontend
-
-USER www-data
-
-# Install the composer dependencies, without running any scripts, this allows us to install the dependencies
-# in a single layer and caching them even if the source files are changed
-RUN --mount=type=cache,id=composer-cache,target=/var/www/html/.composer-cache \
-    --mount=type=bind,from=composer:2,source=/usr/bin/composer,target=/usr/bin/composer \
-    export COMPOSER_CACHE_DIR="/var/www/html/.composer-cache" \
-    && composer install --no-dev --no-progress --no-interaction --verbose --no-scripts --no-autoloader
-
-# Add the app sources
-COPY --chown=www-data:www-data app .
-
-# Ensure correct permissions on the binaries
-RUN find /var/www/html/bin -type f -iname "*.sh" -exec chmod +x {} \;
-
-# Dump the autoload file and run the matching scripts, after all the project files are in the image
-RUN --mount=type=bind,from=composer:2,source=/usr/bin/composer,target=/usr/bin/composer \
-    composer dump-autoload --no-dev --optimize --no-interaction --verbose --no-scripts --no-cache
-
-USER root
+USER ${UID}

@@ -11,6 +11,7 @@ use Hawk\AuthClient\Permissions\PermissionStorage;
 use Hawk\AuthClient\Resources\ResourceStorage;
 use Hawk\AuthClient\Resources\Value\Resource;
 use Hawk\AuthClient\Resources\Value\ResourceScopes;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\Value\User;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -95,12 +96,15 @@ class PermissionStorageTest extends TestCase
     {
         $resourceScopes = new ResourceScopes('foo', 'bar');
         $userScopes = new ResourceScopes('foo');
+        $userId = new DummyUuid(1);
         $user = $this->createStub(User::class);
-        $user->method('getId')->willReturn('user');
+        $user->method('getId')->willReturn($userId);
+        $ownerId = new DummyUuid(2);
         $owner = $this->createStub(User::class);
-        $owner->method('getId')->willReturn('owner');
+        $owner->method('getId')->willReturn($ownerId);
+        $resourceId = new DummyUuid(3);
         $resource = $this->createStub(Resource::class);
-        $resource->method('getId')->willReturn('resource');
+        $resource->method('getId')->willReturn($resourceId);
         $resource->method('getScopes')->willReturn($resourceScopes);
         $resource->method('getOwner')->willReturn($owner);
 
@@ -113,8 +117,8 @@ class PermissionStorageTest extends TestCase
                 callable $valueGenerator,
                 callable $valueToCache,
                 callable $cacheToValue
-            ) use ($resourceScopes) {
-                $this->assertEquals('keycloak.client.permissions.owner.resource', $key);
+            ) use ($resourceScopes, $ownerId, $resourceId) {
+                $this->assertEquals('keycloak.client.permissions.' . $ownerId . '.' . $resourceId, $key);
                 $this->assertSame($resourceScopes, $valueGenerator());
                 $this->assertEquals(['foo', 'bar'], $valueToCache($resourceScopes));
                 $this->assertFalse($valueToCache(null));
@@ -138,8 +142,8 @@ class PermissionStorageTest extends TestCase
                 callable $valueGenerator,
                 callable $valueToCache,
                 callable $cacheToValue
-            ) use ($userScopes) {
-                $this->assertEquals('keycloak.client.permissions.user.resource', $key);
+            ) use ($userScopes, $userId, $resourceId) {
+                $this->assertEquals('keycloak.client.permissions.' . $userId . '.' . $resourceId, $key);
                 $this->assertSame($userScopes, $valueGenerator());
                 $this->assertEquals(['foo'], $valueToCache($userScopes));
                 $this->assertFalse($valueToCache(null));

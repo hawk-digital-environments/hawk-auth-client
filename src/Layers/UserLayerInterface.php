@@ -12,15 +12,16 @@ use Hawk\AuthClient\Users\Value\ResourceUserList;
 use Hawk\AuthClient\Users\Value\User;
 use Hawk\AuthClient\Users\Value\UserConstraints;
 use Hawk\AuthClient\Users\Value\UserList;
+use Hawk\AuthClient\Util\Uuid;
 
 interface UserLayerInterface
 {
     /**
      * Retrieves a single user by its identifier. Returns null if the user does not exist.
-     * @param string|\Stringable $userId The users UUID.
+     * @param Uuid|string $userId The users UUID.
      * @return User|null
      */
-    public function getOne(string|\Stringable $userId): User|null;
+    public function getOne(Uuid|string $userId): User|null;
 
     /**
      * Returns a list of all users that are available on the auth server.

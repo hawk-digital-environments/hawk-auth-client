@@ -8,6 +8,7 @@ use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\FetchResourceScopesGrantedToUserQuery;
 use Hawk\AuthClient\Resources\Value\Resource;
 use Hawk\AuthClient\Resources\Value\ResourceScopes;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\Value\User;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -120,6 +121,8 @@ class FetchResourceScopesGrantedToUserQueryTest extends KeycloakQueryTestCase
 
     public function testItCanFetchResourceScopes(): void
     {
+        $userId = new DummyUuid(1);
+        $resourceId = new DummyUuid(2);
         $this->client->expects($this->once())
             ->method('request')
             ->with(
@@ -128,13 +131,13 @@ class FetchResourceScopesGrantedToUserQueryTest extends KeycloakQueryTestCase
                 [
                     'json' => [
                         'roleIds' => [],
-                        'userId' => 'user-id',
+                        'userId' => (string)$userId,
                         'entitlements' => true,
                         'context' => [
                             'attributes' => (object)[]
                         ],
                         'resources' => [[
-                            '_id' => 'resource-id'
+                            '_id' => (string)$resourceId
                         ]]
                     ]
                 ]
@@ -142,9 +145,9 @@ class FetchResourceScopesGrantedToUserQueryTest extends KeycloakQueryTestCase
             ->willReturn($this->createStreamResponse(self::RESULT));
 
         $user = $this->createStub(User::class);
-        $user->method('getId')->willReturn('user-id');
+        $user->method('getId')->willReturn($userId);
         $resource = $this->createStub(Resource::class);
-        $resource->method('getId')->willReturn('resource-id');
+        $resource->method('getId')->willReturn($resourceId);
 
         $scopes = $this->api->fetchGrantedResourceScopesForUser($resource, $user);
         $this->assertInstanceOf(ResourceScopes::class, $scopes);
@@ -153,6 +156,8 @@ class FetchResourceScopesGrantedToUserQueryTest extends KeycloakQueryTestCase
 
     public function testItWillReturnNullIfNoScopesAreGranted(): void
     {
+        $userId = new DummyUuid(1);
+        $resourceId = new DummyUuid(2);
         $this->client->expects($this->once())
             ->method('request')
             ->with(
@@ -161,13 +166,13 @@ class FetchResourceScopesGrantedToUserQueryTest extends KeycloakQueryTestCase
                 [
                     'json' => [
                         'roleIds' => [],
-                        'userId' => 'user-id',
+                        'userId' => (string)$userId,
                         'entitlements' => true,
                         'context' => [
                             'attributes' => (object)[]
                         ],
                         'resources' => [[
-                            '_id' => 'resource-id'
+                            '_id' => (string)$resourceId
                         ]]
                     ]
                 ]
@@ -175,9 +180,9 @@ class FetchResourceScopesGrantedToUserQueryTest extends KeycloakQueryTestCase
             ->willReturn($this->createStreamResponse('{"results": [], "entitlements": false}'));
 
         $user = $this->createStub(User::class);
-        $user->method('getId')->willReturn('user-id');
+        $user->method('getId')->willReturn($userId);
         $resource = $this->createStub(Resource::class);
-        $resource->method('getId')->willReturn('resource-id');
+        $resource->method('getId')->willReturn($resourceId);
 
         $scopes = $this->api->fetchGrantedResourceScopesForUser($resource, $user);
 

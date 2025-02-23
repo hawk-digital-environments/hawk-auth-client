@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Tests\Keycloak\Query;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\FetchProfileDataQuery;
 use Hawk\AuthClient\Profiles\Value\UserProfile;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\Value\User;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -131,25 +132,26 @@ class FetchProfileDataQueryTest extends KeycloakQueryTestCase
 
     public function testItCanFetchAUserProfile(): void
     {
+        $userId = new DummyUuid();
         $user = $this->createStub(User::class);
-        $user->method('getId')->willReturn('123');
+        $user->method('getId')->willReturn($userId);
         $user->method('getUsername')->willReturn('username');
 
         $this->client->expects($this->once())
             ->method('request')
             ->with(
                 'GET',
-                'admin/realms/{realm}/users/123',
+                'realms/{realm}/hawk/profile/' . $userId,
                 [
                     'query' => [
-                        'userProfileMetadata' => "true"
+                        'mode' => 'user'
                     ]
                 ]
             )->willReturn(
                 $this->createStreamResponse(self::RESPONSE)
             );
 
-        $profile = $this->api->fetchUserProfile($user);
+        $profile = $this->api->fetchUserProfile($user, false);
 
         $this->assertEquals('Angelina', $profile->getFirstName());
         $this->assertEquals('Kolb', $profile->getLastName());
@@ -173,5 +175,29 @@ class FetchProfileDataQueryTest extends KeycloakQueryTestCase
                 'manage' => false
             ]
         ], $profile->getAdditionalData());
+    }
+
+    public function testItCanRequestUserProfileAsAdmin(): void
+    {
+        $userId = new DummyUuid();
+        $user = $this->createStub(User::class);
+        $user->method('getId')->willReturn($userId);
+        $user->method('getUsername')->willReturn('username');
+
+        $this->client->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'realms/{realm}/hawk/profile/' . $userId,
+                [
+                    'query' => [
+                        'mode' => 'admin'
+                    ]
+                ]
+            )->willReturn(
+                $this->createStreamResponse(self::RESPONSE)
+            );
+
+        $this->api->fetchUserProfile($user, true);
     }
 }

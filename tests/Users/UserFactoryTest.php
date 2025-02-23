@@ -14,6 +14,7 @@ use Hawk\AuthClient\Users\UserFactory;
 use Hawk\AuthClient\Users\Value\User;
 use Hawk\AuthClient\Users\Value\UserClaims;
 use Hawk\AuthClient\Users\Value\UserContext;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -67,7 +68,7 @@ JSON;
         $userContext = $this->createStub(UserContext::class);
 
         $expectedUser = new User(
-            '83335934-fc49-4c59-8199-de47c3d03ac5',
+            new Uuid('83335934-fc49-4c59-8199-de47c3d03ac5'),
             'service-account-clientId',
             new UserClaims(['email_verified' => false]),
             RoleReferenceList::fromScalarList('realm-role', 'client-role'),
@@ -127,7 +128,7 @@ JSON;
     {
         $userContext = $this->createStub(UserContext::class);
         $user1 = new User(
-            'f47ac10b-58cc-4372-a567-0e02b2c3d001',
+            new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d001'),
             'username',
             new UserClaims(['claim' => 'value']),
             RoleReferenceList::fromScalarList('role', 'otherRole'),

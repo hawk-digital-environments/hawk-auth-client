@@ -18,16 +18,19 @@ class ProfileUpdater
     protected User $user;
     protected ProfileStorage $storage;
     protected array $changeSet = [];
+    protected bool $asAdminUser;
 
     public function __construct(
         User             $user,
         ConnectionConfig $config,
-        ProfileStorage   $storage
+        ProfileStorage $storage,
+        bool           $asAdminUser
     )
     {
         $this->user = $user;
         $this->config = $config;
         $this->storage = $storage;
+        $this->asAdminUser = $asAdminUser;
     }
 
     /**
@@ -110,7 +113,17 @@ class ProfileUpdater
      */
     public function save(): static
     {
-        $this->storage->updateProfile($this->user, $this->changeSet);
+        $profile = $this->storage->getProfileOfUser($this->user, $this->asAdminUser);
+        $modified = [];
+        foreach ($this->changeSet as $key => $value) {
+            $currentValue = $profile->getAttribute($key, null, false);
+            $currentValue = is_array($currentValue) ? $currentValue : [$currentValue];
+            if ($currentValue !== $value) {
+                $modified[$key] = $value;
+            }
+        }
+
+        $this->storage->updateProfile($this->user, $modified, $this->asAdminUser);
         return $this;
     }
 }

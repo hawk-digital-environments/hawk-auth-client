@@ -13,6 +13,7 @@ use Hawk\AuthClient\Roles\Value\RoleReferenceList;
 use Hawk\AuthClient\Users\Value\User;
 use Hawk\AuthClient\Users\Value\UserClaims;
 use Hawk\AuthClient\Users\Value\UserContext;
+use Hawk\AuthClient\Util\Uuid;
 
 class UserFactory
 {
@@ -35,6 +36,8 @@ class UserFactory
         if (empty($id)) {
             throw new MissingUserIdClaimException();
         }
+
+        $id = new Uuid($id);
 
         if (!is_array($data['hawk'] ?? null)) {
             throw new MissingHawkUserClaimException($id);
@@ -69,7 +72,7 @@ class UserFactory
     public function makeUserFromCacheData(array $data): User
     {
         return new User(
-            $data[User::ARRAY_KEY_ID],
+            new Uuid($data[User::ARRAY_KEY_ID]),
             $data[User::ARRAY_KEY_USERNAME],
             new UserClaims($data[User::ARRAY_KEY_CLAIMS]),
             RoleReferenceList::fromScalarList(...$data[User::ARRAY_KEY_ROLES]),

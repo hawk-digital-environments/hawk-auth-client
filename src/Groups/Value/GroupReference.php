@@ -6,7 +6,7 @@ namespace Hawk\AuthClient\Groups\Value;
 
 
 use Hawk\AuthClient\Groups\GroupReferenceTypeEnum;
-use Hawk\AuthClient\Util\Validator;
+use Hawk\AuthClient\Util\Uuid;
 
 class GroupReference implements \Stringable, \JsonSerializable
 {
@@ -23,7 +23,7 @@ class GroupReference implements \Stringable, \JsonSerializable
      */
     public function getType(): GroupReferenceTypeEnum
     {
-        if (Validator::isUuid($this->value)) {
+        if (Uuid::isValid($this->value)) {
             return GroupReferenceTypeEnum::ID;
         }
 

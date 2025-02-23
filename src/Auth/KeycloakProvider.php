@@ -89,6 +89,15 @@ class KeycloakProvider extends AbstractProvider
     }
 
     /**
+     * Returns the URL to redirect the user after a login (where the code should be converted to a token).
+     * @return string
+     */
+    public function getRedirectUrl(): string
+    {
+        return $this->redirectUri;
+    }
+
+    /**
      * @inheritDoc
      */
     #[\Override] protected function getDefaultScopes(): array

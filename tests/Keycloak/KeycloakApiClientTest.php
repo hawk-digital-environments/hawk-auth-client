@@ -12,7 +12,7 @@ use Hawk\AuthClient\Keycloak\ApiTokenStorage;
 use Hawk\AuthClient\Keycloak\ConnectionInfoStorage;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Value\ApiToken;
-use Hawk\AuthClient\Keycloak\Value\ClientUuid;
+use Hawk\AuthClient\Util\Uuid;
 use Hawk\AuthClient\Keycloak\Value\ConnectionConfig;
 use Hawk\AuthClient\Keycloak\Value\ConnectionInfo;
 use Hawk\AuthClient\Resources\ResourceFactory;
@@ -67,7 +67,7 @@ class KeycloakApiClientTest extends TestCase
         $config->method('getRealm')->willReturn('REALM');
         $config->method('getClientId')->willReturn('CLIENT_ID');
         $config->method('getInternalKeycloakUrl')->willReturn('http://example.com');
-        $clientUUid = new ClientUuid('f47ac10b-58cc-4372-a567-0e02b2c3d001');
+        $clientUUid = new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d001');
         $connectionInfo = $this->createStub(ConnectionInfo::class);
         $connectionInfo->method('getClientUuid')->willReturn($clientUUid);
         $connectionInfoStorage = $this->createStub(ConnectionInfoStorage::class);
@@ -124,7 +124,7 @@ class KeycloakApiClientTest extends TestCase
         $config->method('getRealm')->willReturn('REALM');
         $config->method('getClientId')->willReturn('CLIENT_ID');
         $config->method('getInternalKeycloakUrl')->willReturn('http://example.com');
-        $clientUUid = new ClientUuid('f47ac10b-58cc-4372-a567-0e02b2c3d001');
+        $clientUUid = new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d001');
         $connectionInfo = $this->createStub(ConnectionInfo::class);
         $connectionInfo->method('getClientUuid')->willReturn($clientUUid);
         $connectionInfoStorage = $this->createStub(ConnectionInfoStorage::class);
@@ -171,7 +171,7 @@ class KeycloakApiClientTest extends TestCase
         $config->method('getRealm')->willReturn('REALM');
         $config->method('getClientId')->willReturn('CLIENT_ID');
         $config->method('getInternalKeycloakUrl')->willReturn('http://example.com');
-        $clientUUid = new ClientUuid('f47ac10b-58cc-4372-a567-0e02b2c3d001');
+        $clientUUid = new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d001');
         $connectionInfo = $this->createStub(ConnectionInfo::class);
         $connectionInfo->method('getClientUuid')->willReturn($clientUUid);
         $connectionInfoStorage = $this->createStub(ConnectionInfoStorage::class);

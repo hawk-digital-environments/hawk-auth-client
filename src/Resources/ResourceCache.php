@@ -9,7 +9,8 @@ use Hawk\AuthClient\Cache\CacheAdapterInterface;
 use Hawk\AuthClient\Cache\Util\AbstractEntityCache;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Resources\Value\ResourceConstraints;
-use Hawk\AuthClient\Util\Validator;
+use Hawk\AuthClient\Util\Uuid;
+use Stringable;
 
 /**
  * @extends AbstractEntityCache<\Hawk\AuthClient\Resources\Value\Resource>
@@ -39,24 +40,24 @@ class ResourceCache extends AbstractEntityCache
      * Reliably resolves the resource ID from a resource name or ID.
      * If the resource name is not found, it will return null.
      *
-     * @param string $identifier
-     * @return string|null
+     * @param string|Stringable $identifier
+     * @return Uuid|null
      */
-    public function getResourceId(string $identifier): string|null
+    public function getResourceId(string|\Stringable $identifier): Uuid|null
     {
         if (array_key_exists($identifier, $this->nameToIdMap)) {
             return $this->nameToIdMap[$identifier];
         }
 
-        if (Validator::isUuid($identifier)) {
-            return $identifier;
+        if (Uuid::isValid($identifier)) {
+            return new Uuid($identifier);
         }
 
         return $this->nameToIdMap[$identifier] = $this->cache->remember(
             $this->getResourceIdMapCacheKey($identifier),
-            valueGenerator: fn() => $this->api->fetchResourceByName($identifier),
-            valueToCache: fn($resource) => $resource === null ? false : $resource->getId(),
-            cacheToValue: fn($id) => $id === false ? null : $id,
+            valueGenerator: fn() => $this->api->fetchResourceByName($identifier)?->getId(),
+            valueToCache: fn($id) => $id instanceof Uuid ? (string)$id : false,
+            cacheToValue: fn($id) => $id === false || $id === null ? null : new Uuid($id),
             ttl: fn($resource) => $resource === null ? 60 * 60 : null
         );
     }
@@ -80,7 +81,7 @@ class ResourceCache extends AbstractEntityCache
     /**
      * @inheritDoc
      */
-    #[\Override] protected function getCacheKey(string $id): string
+    #[\Override] protected function getCacheKey(Uuid $id): string
     {
         return self::CACHE_KEY . '.' . $id;
     }
@@ -88,7 +89,7 @@ class ResourceCache extends AbstractEntityCache
     /**
      * @inheritDoc
      */
-    #[\Override] protected function fetchItems(string ...$ids): iterable
+    #[\Override] protected function fetchItems(Uuid ...$ids): iterable
     {
         return $this->api->fetchResourcesByIds(...$ids);
     }
@@ -96,7 +97,7 @@ class ResourceCache extends AbstractEntityCache
     /**
      * @inheritDoc
      */
-    #[\Override] protected function unserializeObject(string $id, array $data): object
+    #[\Override] protected function unserializeObject(Uuid $id, array $data): object
     {
         return $this->resourceFactory->makeResourceFromCacheData($data);
     }
@@ -104,7 +105,7 @@ class ResourceCache extends AbstractEntityCache
     /**
      * @inheritDoc
      */
-    #[\Override] protected function serializeObject(string $id, object $item): array
+    #[\Override] protected function serializeObject(Uuid $id, object $item): array
     {
         // Passive learning of resource name to ID mapping
         $this->nameToIdMap[$item->getName()] = $item->getId();

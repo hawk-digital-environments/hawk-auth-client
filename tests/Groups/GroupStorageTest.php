@@ -12,6 +12,8 @@ use Hawk\AuthClient\Groups\Value\GroupList;
 use Hawk\AuthClient\Groups\Value\GroupReference;
 use Hawk\AuthClient\Groups\Value\GroupReferenceList;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -60,14 +62,15 @@ class GroupStorageTest extends TestCase
 
     public function testItCanGetAllInRefList(): void
     {
-        $group1 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'name1', '/name1', new GroupList());
-        $group2 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d002', 'name2', '/name2', new GroupList());
-        $group3 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d003', 'name3', '/name3', new GroupList());
+        $group1Id = new DummyUuid(1);
+        $group1 = new Group($group1Id, 'name1', '/name1', new GroupList());
+        $group2 = new Group(new DummyUuid(2), 'name2', '/name2', new GroupList());
+        $group3 = new Group(new DummyUuid(3), 'name3', '/name3', new GroupList());
 
         $cache = $this->createStub(CacheAdapterInterface::class);
         $cache->method('remember')->willReturn(new GroupList($group1, $group2, $group3));
 
-        $reference1 = new GroupReference('f47ac10b-58cc-4372-a567-0e02b2c3d001');
+        $reference1 = new GroupReference((string)$group1Id);
         $reference2 = new GroupReference('name2');
         $reference3 = new GroupReference('/name3');
 
@@ -92,9 +95,9 @@ class GroupStorageTest extends TestCase
 
     public function testItCanGetAll(): void
     {
-        $group1 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'name1', '/name1', new GroupList());
-        $group2 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d002', 'name2', '/name2', new GroupList());
-        $group3 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d003', 'name3', '/name3', new GroupList());
+        $group1 = new Group(new DummyUuid(1), 'name1', '/name1', new GroupList());
+        $group2 = new Group(new DummyUuid(2), 'name2', '/name2', new GroupList());
+        $group3 = new Group(new DummyUuid(3), 'name3', '/name3', new GroupList());
 
         $cache = $this->createStub(CacheAdapterInterface::class);
         $cache->method('remember')->willReturn(new GroupList($group1, $group2, $group3));
@@ -105,8 +108,9 @@ class GroupStorageTest extends TestCase
 
     public function testItDoesCacheCorrectly(): void
     {
+        $groupId = new DummyUuid(1);
         $apiGroupList = new GroupList(
-            new Group('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'name1', '/name1', new GroupList()),
+            new Group(new Uuid($groupId), 'name1', '/name1', new GroupList()),
         );
         $api = $this->createMock(KeycloakApiClient::class);
         $api->expects($this->once())->method('fetchGroups')->willReturn($apiGroupList);
@@ -119,10 +123,10 @@ class GroupStorageTest extends TestCase
                 callable $valueGenerator,
                 callable $valueToCache,
                 callable $cacheToValue
-            ) use ($apiGroupList) {
+            ) use ($apiGroupList, $groupId) {
                 $this->assertEquals('keycloak.groups', $key);
                 $this->assertSame($apiGroupList, $valueGenerator());
-                $expectedJson = '[{"id":"f47ac10b-58cc-4372-a567-0e02b2c3d001","name":"name1","path":"\/name1","children":[]}]';
+                $expectedJson = '[{"id":"' . $groupId . '","name":"name1","path":"\/name1","children":[]}]';
                 $this->assertJsonStringEqualsJsonString(
                     $expectedJson,
                     $valueToCache($apiGroupList)

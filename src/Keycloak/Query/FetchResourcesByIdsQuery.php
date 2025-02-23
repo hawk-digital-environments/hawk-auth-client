@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Keycloak\Query;
 
 use GuzzleHttp\ClientInterface;
 use Hawk\AuthClient\Resources\ResourceFactory;
+use Hawk\AuthClient\Util\Uuid;
 
 class FetchResourcesByIdsQuery
 {
@@ -15,7 +16,7 @@ class FetchResourcesByIdsQuery
 
     public function __construct(
         ResourceFactory $resourceFactory,
-        string ...$ids)
+        Uuid ...$ids)
     {
         $this->resourceFactory = $resourceFactory;
         $this->ids = $ids;

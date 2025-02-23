@@ -80,52 +80,112 @@ class ProfileFieldBuilderTest extends TestCase
         $sut->setMultiValued();
     }
 
-    public function testItCanSetRequiredForUser(): void
+    public function testItCanSetAndGetRequiredForUser(): void
     {
         $data = $this->createMock(ProfileFieldData::class);
+        $data->expects($this->exactly(4))->method('getAttr')->with('required')
+            ->willReturn(null, null, null, ['roles' => ['user']]);
         $data->expects($this->once())->method('setAttr')->with('required', ['roles' => ['user']]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
+        $this->assertFalse($sut->isRequiredForUser());
         $sut->setRequiredForUser();
+        $this->assertTrue($sut->isRequiredForUser());
     }
 
-    public function testItCanSetRequiredForAdmin(): void
+    public function testItCanSetAndGetRequiredForAdmin(): void
     {
         $data = $this->createMock(ProfileFieldData::class);
+        $data->expects($this->exactly(4))->method('getAttr')->with('required')
+            ->willReturn(null, null, null, ['roles' => ['admin']]);
         $data->expects($this->once())->method('setAttr')->with('required', ['roles' => ['admin']]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
+        $this->assertFalse($sut->isRequiredForAdmin());
         $sut->setRequiredForAdmin();
+        $this->assertTrue($sut->isRequiredForAdmin());
     }
 
-    public function testItCanSetUserCanView(): void
+    public static function provideTestItCanGetIsRequiredData(): iterable
+    {
+        yield 'no data' => [null, false];
+        yield 'empty data' => [[], false];
+        yield 'user' => [['roles' => ['user']], true];
+        yield 'admin' => [['roles' => ['admin']], true];
+        yield 'both' => [['roles' => ['user', 'admin']], true];
+    }
+
+    #[DataProvider('provideTestItCanGetIsRequiredData')]
+    public function testItCanGetIsRequired(array|null $required, bool $expected): void
     {
         $data = $this->createMock(ProfileFieldData::class);
+        $data->method('getAttr')->with('required')->willReturn($required);
+        $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
+        $this->assertEquals($expected, $sut->isRequired());
+    }
+
+    public function testItCanSetAndGetUserCanView(): void
+    {
+        $data = $this->createMock(ProfileFieldData::class);
+        $data->expects($this->exactly(4))->method('getAttr')->with('permissions')
+            ->willReturn(null, null, null, ['view' => ['user']]);
         $data->expects($this->once())->method('setAttr')->with('permissions', ['view' => ['user']]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
+        $this->assertFalse($sut->userCanView());
         $sut->setUserCanView();
+        $this->assertTrue($sut->userCanView());
     }
 
-    public function testItCanSetUserCanEdit(): void
+    public function testItCanSetAndGetUserCanEdit(): void
     {
         $data = $this->createMock(ProfileFieldData::class);
+        $data->expects($this->exactly(4))->method('getAttr')->with('permissions')
+            ->willReturn(null, null, null, ['edit' => ['user']]);
         $data->expects($this->once())->method('setAttr')->with('permissions', ['edit' => ['user']]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
+        $this->assertFalse($sut->userCanEdit());
         $sut->setUserCanEdit();
+        $this->assertTrue($sut->userCanEdit());
     }
 
-    public function testItCanSetAdminCanView(): void
+    public function testItCanSetAndGetAdminCanView(): void
     {
         $data = $this->createMock(ProfileFieldData::class);
+        $data->expects($this->exactly(4))->method('getAttr')->with('permissions')
+            ->willReturn(null, null, null, ['view' => ['admin']]);
         $data->expects($this->once())->method('setAttr')->with('permissions', ['view' => ['admin']]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
+        $this->assertFalse($sut->adminCanView());
         $sut->setAdminCanView();
+        $this->assertTrue($sut->adminCanView());
     }
 
-    public function testItCanSetAdminCanEdit(): void
+    public function testItCanSetAndGetAdminCanEdit(): void
     {
         $data = $this->createMock(ProfileFieldData::class);
+        $data->expects($this->exactly(4))->method('getAttr')->with('permissions')
+            ->willReturn(null, null, null, ['edit' => ['admin']]);
         $data->expects($this->once())->method('setAttr')->with('permissions', ['edit' => ['admin']]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
+        $this->assertFalse($sut->adminCanEdit());
         $sut->setAdminCanEdit();
+        $this->assertTrue($sut->adminCanEdit());
+    }
+
+    public static function provideTestItCanGetIsReadonlyData(): iterable
+    {
+        yield 'no data' => [null, true];
+        yield 'empty data' => [[], true];
+        yield 'user' => [['edit' => ['user']], false];
+        yield 'admin' => [['edit' => ['admin']], false];
+        yield 'both' => [['edit' => ['user', 'admin']], false];
+    }
+
+    #[DataProvider('provideTestItCanGetIsReadonlyData')]
+    public function testItCanGetIsReadonly(array|null $permissions, bool $expected): void
+    {
+        $data = $this->createMock(ProfileFieldData::class);
+        $data->method('getAttr')->with('permissions')->willReturn($permissions);
+        $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
+        $this->assertEquals($expected, $sut->isReadOnly());
     }
 
     public function testItCanSetTheInputTypeWithString(): void
@@ -181,7 +241,7 @@ class ProfileFieldBuilderTest extends TestCase
     public function testItCanSetTheDoubleValidator(mixed $min, mixed $max, array $expected): void
     {
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validations', ['double' => $expected]);
+        $data->expects($this->once())->method('setAttr')->with('validators', ['double' => $expected]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setDoubleValidator($min, $max);
     }
@@ -198,7 +258,7 @@ class ProfileFieldBuilderTest extends TestCase
     public function testItCanSetTheIntegerValidator(mixed $min, mixed $max, array $expected): void
     {
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validations', ['integer' => $expected]);
+        $data->expects($this->once())->method('setAttr')->with('validators', ['integer' => $expected]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setIntegerValidator($min, $max);
     }
@@ -214,7 +274,7 @@ class ProfileFieldBuilderTest extends TestCase
     public function testItCanSetEmailValidator(int|null $maxLocalLength, array $expected): void
     {
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validations', ['email' => $expected]);
+        $data->expects($this->once())->method('setAttr')->with('validators', ['email' => $expected]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setEmailValidator($maxLocalLength);
     }
@@ -222,7 +282,7 @@ class ProfileFieldBuilderTest extends TestCase
     public function testItCanSetDataValidator(): void
     {
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validations', ['iso-date' => []]);
+        $data->expects($this->once())->method('setAttr')->with('validators', ['iso-date' => []]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setDateValidator();
     }
@@ -240,7 +300,7 @@ class ProfileFieldBuilderTest extends TestCase
     public function testItCanSetMultiValueValidator(int|null $min, int|null $max, array $expected): void
     {
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validations', ['multi-value' => $expected]);
+        $data->expects($this->once())->method('setAttr')->with('validators', ['multi-value' => $expected]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setMultiValueValidator($min, $max);
     }
@@ -249,7 +309,7 @@ class ProfileFieldBuilderTest extends TestCase
     {
         $options = ['foo', 'bar', 'baz'];
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validations', ['options' => ['options' => $options]]);
+        $data->expects($this->once())->method('setAttr')->with('validators', ['options' => ['options' => $options]]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setOptionsValidator($options);
     }
@@ -258,7 +318,7 @@ class ProfileFieldBuilderTest extends TestCase
     {
         $pattern = '/^foo/';
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validations', ['pattern' => ['pattern' => $pattern, 'error-message' => '']]);
+        $data->expects($this->once())->method('setAttr')->with('validators', ['pattern' => ['pattern' => $pattern, 'error-message' => '']]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setPatternValidator($pattern);
     }
@@ -278,6 +338,5 @@ class ProfileFieldBuilderTest extends TestCase
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setAnnotation('annotation', ['custom' => 'data']);
     }
-
 
 }

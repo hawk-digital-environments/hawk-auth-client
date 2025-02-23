@@ -54,7 +54,10 @@ class StatefulAuth
     /**
      * The redirect handler is responsible for redirecting the user to multiple locations.
      * By default, a native PHP header redirect is used. If you want to use a different
-     * method, or use the library in a http flow, you can set a custom handler here.
+     * method, or use the library like a {@see https://www.php-fig.org/psr/psr-15/} server request handler,
+     * you can set a custom handler that returns a redirect response here.
+     *
+     * The result of the handler will be returned by the calling method.
      *
      * @param callable $handler A handler that takes a string URL and either handles the redirect and exists or
      *                          returns a response that will be returned by the calling method.
@@ -108,6 +111,28 @@ class StatefulAuth
         }
 
         return null;
+    }
+
+    /**
+     * This method will authenticate the user if possible, otherwise it will redirect the user to the login page.
+     * @param string|null $redirectUrl The URL to redirect to after the login. This is typically the URL that got submitted before the login.
+     *                           For the simplest use case, you can use the current URL WITHOUT query here, but you can also
+     *                           Store the URL in the session or in a cookie.
+     *                           If empty/null the configured redirect URL of the client will be used.
+     * @return mixed Depending on your {@see setRedirectHandler()} implementation, this will either return a response or null.
+     * @see authenticate() if you need more control over the authentication process.
+     */
+    public function authenticateOrLogin(string|null $redirectUrl = null): mixed
+    {
+        $redirectUrl = empty($redirectUrl) ? $this->provider->getRedirectUrl() : $redirectUrl;
+        return $this->authenticate(
+            onUnauthorized: function () use ($redirectUrl) {
+                return $this->handleCallback(
+                    onHandled: fn() => $redirectUrl,
+                    onInvalidState: fn() => $redirectUrl
+                );
+            }
+        );
     }
 
     /**
@@ -170,15 +195,22 @@ class StatefulAuth
 
     /**
      * Logs the user out. This will clear the token and redirect the user to the logout page of the OAuth2 provider.
+     * @param string|null $redirectUrl If present, the user will be redirected to this URL after the logout.
      * @return mixed Depending on your {@see setRedirectHandler()} implementation, this will either return a response or null.
      */
-    public function logout(): mixed
+    public function logout(string|null $redirectUrl = null): mixed
     {
         $token = $this->tokenStorage->getToken();
         if ($token !== null) {
             $this->logger->info('[StatefulAuth] Logging out');
             $this->tokenStorage->clear();
-            return ($this->redirectHandler)($this->provider->getLogoutUrl($token));
+            return ($this->redirectHandler)($this->provider->getLogoutUrl($token, $redirectUrl));
+        }
+
+        // Even without a token, we can still redirect the user
+        $url = $redirectUrl ?? $this->redirectUriAfterLogout ?? null;
+        if (!empty($url)) {
+            return ($this->redirectHandler)($url);
         }
 
         return null;
@@ -234,6 +266,8 @@ class StatefulAuth
      * the token will be fetched and stored. If the state is invalid, the $onInvalidState hook is called.
      *
      * The code delivered to the callback is used to fetch the token from the OAuth2 provider.
+     *
+     * If no code is present in the query, or explicitly given, the user will be redirected to the login page.
      *
      * @param callable|null $onHandled A hook that is called when the callback is handled successfully.
      *                                 May return a string, which is interpreted as a URL to redirect to.
@@ -298,7 +332,7 @@ class StatefulAuth
      * @param mixed $hookResult A hook to execute.
      * @return mixed Either null or the result of the given hook, if it was a non-empty string
      */
-    private function handleRedirectResultOfHook(mixed $hookResult): mixed
+    protected function handleRedirectResultOfHook(mixed $hookResult): mixed
     {
         if (!empty($hookResult) && is_string($hookResult)) {
             return ($this->redirectHandler)($hookResult);

@@ -11,8 +11,10 @@ use Hawk\AuthClient\Resources\ResourceCache;
 use Hawk\AuthClient\Resources\ResourceFactory;
 use Hawk\AuthClient\Resources\Value\Resource;
 use Hawk\AuthClient\Resources\Value\ResourceConstraints;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Tests\TestUtils\PartialMockWithConstructorArgsTrait;
 use Hawk\AuthClient\Tests\TestUtils\TestCacheAdapter;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -38,26 +40,28 @@ class ResourceCacheTest extends TestCase
         $resourceFactory = $this->createStub(ResourceFactory::class);
         $api = $this->createStub(KeycloakApiClient::class);
         $sut = new ResourceCache($cache, $resourceFactory, $api);
-        $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $sut->getResourceId('f47ac10b-58cc-4372-a567-0e02b2c3d001'));
+        $this->assertEquals(new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d001'), $sut->getResourceId('f47ac10b-58cc-4372-a567-0e02b2c3d001'));
     }
 
     public function testItCanGetAResourceIdByNameAndReuseItForLaterCalls(): void
     {
+        $id = new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d001');
         $cache = $this->createMock(CacheAdapterInterface::class);
-        $cache->expects($this->once())->method('remember')->willReturn('f47ac10b-58cc-4372-a567-0e02b2c3d001');
+        $cache->expects($this->once())->method('remember')->willReturn($id);
         $resourceFactory = $this->createStub(ResourceFactory::class);
         $api = $this->createStub(KeycloakApiClient::class);
         $sut = new ResourceCache($cache, $resourceFactory, $api);
 
-        $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $sut->getResourceId('foo'));
-        $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $sut->getResourceId('foo'));
-        $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $sut->getResourceId('foo'));
+        $this->assertEquals($id, $sut->getResourceId('foo'));
+        $this->assertEquals($id, $sut->getResourceId('foo'));
+        $this->assertEquals($id, $sut->getResourceId('foo'));
     }
 
     public function testItCachesTheResourceIdByNameMapCorrectlyWhenRetrievingItDirectly(): void
     {
+        $id = new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d001');
         $resource = $this->createStub(Resource::class);
-        $resource->method('getId')->willReturn('f47ac10b-58cc-4372-a567-0e02b2c3d001');
+        $resource->method('getId')->willReturn($id);
         $cache = $this->createMock(CacheAdapterInterface::class);
         $cache->expects($this->once())
             ->method('remember')
@@ -67,31 +71,31 @@ class ResourceCacheTest extends TestCase
                 callable $valueToCache,
                 callable $cacheToValue,
                 callable $ttl
-            ) use ($resource) {
+            ) use ($resource, $id) {
                 $this->assertEquals(ResourceCache::CACHE_KEY . '.nameToIdMap.' . hash('sha256', 'foo'), $key);
-                $this->assertEquals($resource, $valueGenerator());
+                $this->assertEquals($id, $valueGenerator());
                 $this->assertEquals(60 * 60, $ttl(null));
                 $this->assertEquals(null, $ttl($resource));
 
                 $this->assertFalse($valueToCache(null));
-                $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $valueToCache($resource));
+                $this->assertEquals((string)$id, $valueToCache($id));
                 $this->assertNull($cacheToValue(false));
                 $this->assertNull($cacheToValue(null));
-                $this->assertEquals('foo', $cacheToValue('foo'));
-                return 'f47ac10b-58cc-4372-a567-0e02b2c3d001';
+                $this->assertEquals($id, $cacheToValue((string)$id));
+                return $id;
             });
         $api = $this->createMock(KeycloakApiClient::class);
         $api->expects($this->once())
             ->method('fetchResourceByName')->with('foo')
             ->willReturn($resource);
         $sut = new ResourceCache($cache, $this->createStub(ResourceFactory::class), $api);
-        $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $sut->getResourceId('foo'));
+        $this->assertEquals($id, $sut->getResourceId('foo'));
     }
 
     public function testItAutomaticallyCachesTheResourceIdByNameRecordAutomaticallyWhenCachingAResource(): void
     {
         $resource = $this->createStub(Resource::class);
-        $resource->method('getId')->willReturn('f47ac10b-58cc-4372-a567-0e02b2c3d001');
+        $resource->method('getId')->willReturn(new DummyUuid());
         $resource->method('getName')->willReturn('name');
 
         $cache = new TestCacheAdapter();
@@ -112,17 +116,18 @@ class ResourceCacheTest extends TestCase
 
     public function testItResetsTheLoadedNameToIdMapWhenResolvedObjectsAreFlushed(): void
     {
+        $id = new DummyUuid();
         $cache = $this->createMock(CacheAdapterInterface::class);
-        $cache->expects($this->exactly(2))->method('remember')->willReturn('f47ac10b-58cc-4372-a567-0e02b2c3d001');
+        $cache->expects($this->exactly(2))->method('remember')->willReturn($id);
         $resourceFactory = $this->createStub(ResourceFactory::class);
         $api = $this->createStub(KeycloakApiClient::class);
         $sut = new ResourceCache($cache, $resourceFactory, $api);
 
-        $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $sut->getResourceId('foo'));
+        $this->assertEquals($id, $sut->getResourceId('foo'));
 
         $sut->flushResolved();
-        $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $sut->getResourceId('foo'));
-        $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $sut->getResourceId('foo'));
+        $this->assertEquals($id, $sut->getResourceId('foo'));
+        $this->assertEquals($id, $sut->getResourceId('foo'));
     }
 
     public function testItCanGetResourceIdStream(): void
@@ -140,21 +145,22 @@ class ResourceCacheTest extends TestCase
 
     public function testItWorksAsEntityCache(): void
     {
+        $id = new DummyUuid();
         $resourceToCache = $this->createStub(Resource::class);
-        $resourceToCache->method('jsonSerialize')->willReturn(['id' => 'foo']);
+        $resourceToCache->method('jsonSerialize')->willReturn(['id' => (string)$id]);
         $resourceFromCache = $this->createStub(Resource::class);
         $resourceFactory = $this->createMock(ResourceFactory::class);
-        $resourceFactory->expects($this->once())->method('makeResourceFromCacheData')->with(['id' => 'foo'])->willReturn($resourceFromCache);
+        $resourceFactory->expects($this->once())->method('makeResourceFromCacheData')->with(['id' => (string)$id])->willReturn($resourceFromCache);
         $api = $this->createMock(KeycloakApiClient::class);
-        $api->expects($this->once())->method('fetchResourcesByIds')->with('foo')->willReturn([$resourceToCache]);
+        $api->expects($this->once())->method('fetchResourcesByIds')->with($id)->willReturn([$resourceToCache]);
         $cache = new TestCacheAdapter();
 
         // First fetch -> get from api
-        $fetchedUser = (new ResourceCache($cache, $resourceFactory, $api))->getOne('foo');
+        $fetchedUser = (new ResourceCache($cache, $resourceFactory, $api))->getOne($id);
         $this->assertSame($resourceToCache, $fetchedUser);
 
         // Second fetch -> get from cache
-        $fetchedUser = (new ResourceCache($cache, $resourceFactory, $api))->getOne('foo');
+        $fetchedUser = (new ResourceCache($cache, $resourceFactory, $api))->getOne($id);
         $this->assertSame($resourceFromCache, $fetchedUser);
     }
 }

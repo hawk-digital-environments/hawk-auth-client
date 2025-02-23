@@ -7,6 +7,8 @@ namespace Hawk\AuthClient\Tests\Roles\Value;
 
 use Hawk\AuthClient\Roles\Value\Role;
 use Hawk\AuthClient\Roles\Value\RoleList;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -30,8 +32,8 @@ class RoleListTest extends TestCase
 
     public function testItCanBeCreatedFromScalarList(): void
     {
-        $role1 = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', []);
-        $role2 = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d002', 'bar', false, 'desc', []);
+        $role1 = new Role(new Uuid(new DummyUuid(1)), 'foo', false, 'desc', []);
+        $role2 = new Role(new Uuid(new DummyUuid(2)), 'bar', false, 'desc', []);
 
         $sut = new RoleList($role1, $role2);
         $sut2 = RoleList::fromScalarList(...json_decode(json_encode($sut), true));

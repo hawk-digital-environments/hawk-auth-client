@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Tests\Groups\Value;
 
 use Hawk\AuthClient\Groups\Value\Group;
 use Hawk\AuthClient\Groups\Value\GroupList;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -96,11 +97,11 @@ class GroupListTest extends TestCase
 
         $sut = GroupList::fromScalarList(...$data);
 
-        $expected211 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d221', 'name211', '/path211', new GroupList());
-        $expected21 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d021', 'name21', '/path21', new GroupList($expected211));
-        $expected22 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d022', 'name22', '/path22', new GroupList());
-        $expected2 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d002', 'name2', '/path2', new GroupList($expected21, $expected22));
-        $expected1 = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'name1', '/path1', new GroupList());
+        $expected211 = new Group(new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d221'), 'name211', '/path211', new GroupList());
+        $expected21 = new Group(new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d021'), 'name21', '/path21', new GroupList($expected211));
+        $expected22 = new Group(new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d022'), 'name22', '/path22', new GroupList());
+        $expected2 = new Group(new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d002'), 'name2', '/path2', new GroupList($expected21, $expected22));
+        $expected1 = new Group(new Uuid('f47ac10b-58cc-4372-a567-0e02b2c3d001'), 'name1', '/path1', new GroupList());
 
         $this->assertEquals(
             [$expected1, $expected2, $expected21, $expected211, $expected22],

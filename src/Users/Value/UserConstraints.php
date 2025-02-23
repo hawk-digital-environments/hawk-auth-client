@@ -6,6 +6,7 @@ namespace Hawk\AuthClient\Users\Value;
 
 
 use Hawk\AuthClient\Profiles\Value\UserProfile;
+use Hawk\AuthClient\Util\Uuid;
 
 class UserConstraints
 {
@@ -107,7 +108,7 @@ class UserConstraints
 
     /**
      * Returns the list of user ids that are set as filters.
-     * @return array
+     * @return Uuid[]
      */
     public function getIds(): array
     {
@@ -118,13 +119,13 @@ class UserConstraints
      * Sets a filter to only return users with the given ids.
      * If the filter is set, "search" and "attributes" filters are ignored. The online filter is still applied!
      *
-     * @param string|\Stringable ...$ids The ids of the users to return.
+     * @param Uuid|string|\Stringable ...$ids The ids of the users to return.
      * @return $this
      */
-    public function withIds(string|\Stringable ...$ids): static
+    public function withIds(Uuid|string|\Stringable ...$ids): static
     {
         $clone = clone $this;
-        $clone->ids = array_values(array_unique(array_map('strval', $ids)));
+        $clone->ids = Uuid::fromList(...$ids);
         return $clone;
     }
 }

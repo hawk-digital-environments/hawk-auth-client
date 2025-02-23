@@ -6,6 +6,7 @@ namespace Hawk\AuthClient\Groups\Value;
 
 use ArrayIterator;
 use Hawk\AuthClient\Util\AbstractList;
+use Hawk\AuthClient\Util\Uuid;
 
 /**
  * @extends AbstractList<Group>
@@ -48,7 +49,7 @@ class GroupList extends AbstractList
         $buildRecursively = static function (array $groups, callable $buildRecursively): array {
             return array_map(static function (array $group) use ($buildRecursively) {
                 return new Group(
-                    $group['id'],
+                    new Uuid($group['id']),
                     $group['name'],
                     $group['path'],
                     new GroupList(

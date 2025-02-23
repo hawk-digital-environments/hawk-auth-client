@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Keycloak\Query;
 
 use GuzzleHttp\ClientInterface;
 use Hawk\AuthClient\Users\Value\UserConstraints;
+use Hawk\AuthClient\Util\Uuid;
 use Psr\Http\Message\ResponseInterface;
 
 class FetchUserIdStreamQuery extends AbstractChunkedQuery
@@ -32,9 +33,21 @@ class FetchUserIdStreamQuery extends AbstractChunkedQuery
         );
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[\Override] protected function getCacheTtl(): int|null
+    {
+        if (($this->baseQuery['onlineOnly'] ?? null) === 'true') {
+            return 10;
+        }
+
+        return null;
+    }
+
     #[\Override] protected function dataToItem(mixed $dataItem): mixed
     {
-        return $dataItem;
+        return new Uuid($dataItem);
     }
 
     #[\Override] protected function getCacheKey(): string

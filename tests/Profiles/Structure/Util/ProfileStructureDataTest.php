@@ -123,6 +123,9 @@ class ProfileStructureDataTest extends TestCase
 
         // ALL fields
         $this->assertEquals($allFields, [...$sut->getFields($config, true)]);
+
+        // Fields NOT in a group
+        $this->assertEquals([$globalField], [...$sut->getFields($config, true, false)]);
     }
 
     public function testItCanGetASingleGroup(): void

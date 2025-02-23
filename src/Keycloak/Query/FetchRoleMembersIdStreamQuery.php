@@ -6,13 +6,14 @@ namespace Hawk\AuthClient\Keycloak\Query;
 
 
 use GuzzleHttp\ClientInterface;
+use Hawk\AuthClient\Util\Uuid;
 use Psr\Http\Message\ResponseInterface;
 
 class FetchRoleMembersIdStreamQuery extends AbstractChunkedQuery
 {
-    private string $roleId;
+    private Uuid $roleId;
 
-    public function __construct(string $roleId)
+    public function __construct(Uuid $roleId)
     {
         $this->roleId = $roleId;
     }
@@ -33,7 +34,7 @@ class FetchRoleMembersIdStreamQuery extends AbstractChunkedQuery
 
     #[\Override] protected function dataToItem(mixed $dataItem): mixed
     {
-        return $dataItem;
+        return new Uuid($dataItem);
     }
 
     #[\Override] protected function getCacheKey(): string

@@ -15,6 +15,7 @@ use Hawk\AuthClient\Resources\Value\ResourceBuilder;
 use Hawk\AuthClient\Resources\Value\ResourceScopes;
 use Hawk\AuthClient\Users\UserStorage;
 use Hawk\AuthClient\Users\Value\User;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -131,7 +132,7 @@ class ResourceBuilderTest extends TestCase
     public function testItCanSetAndGetTheOwnerWithoutResource(): void
     {
         $owner = $this->createStub(User::class);
-        $ownerId = '83335934-fc49-4c59-8199-de47c3d03ac3';
+        $ownerId = new Uuid('83335934-fc49-4c59-8199-de47c3d03ac3');
         $owner->method('getId')->willReturn($ownerId);
 
         $sut = $this->createSutWithoutResource(true, owner: $owner);
@@ -145,11 +146,11 @@ class ResourceBuilderTest extends TestCase
     public function testItCanSetAndGetTheOwnerWithResource(): void
     {
         $originalOwner = $this->createStub(User::class);
-        $originalOwnerId = '83335934-fc49-4c59-8199-de47c3d03ac3';
+        $originalOwnerId = new Uuid('83335934-fc49-4c59-8199-de47c3d03ac3');
         $originalOwner->method('getId')->willReturn($originalOwnerId);
 
         $newOwner = $this->createStub(User::class);
-        $newOwnerId = '83335934-fc49-4c59-8199-de47c3d03ac4';
+        $newOwnerId = new Uuid('83335934-fc49-4c59-8199-de47c3d03ac4');
         $newOwner->method('getId')->willReturn($newOwnerId);
 
         $sut = $this->createSutWithResource(true, owner: [
@@ -297,7 +298,7 @@ class ResourceBuilderTest extends TestCase
         ];
         $sut = $this->createSutWithoutResource();
         $owner = $this->createStub(User::class);
-        $owner->method('getId')->willReturn($expected['owner']);
+        $owner->method('getId')->willReturn(new Uuid($expected['owner']));
 
         $sut->setDisplayName($expected['displayName']);
         $sut->setOwner($owner);
@@ -352,7 +353,7 @@ class ResourceBuilderTest extends TestCase
 
         $sut = $this->createSutWithResource();
         $owner = $this->createStub(User::class);
-        $owner->method('getId')->willReturn($expected['owner']);
+        $owner->method('getId')->willReturn(new Uuid($expected['owner']));
 
         $sut->setName($expected['name']);
         $sut->setDisplayName($expected['displayName']);
@@ -398,7 +399,7 @@ class ResourceBuilderTest extends TestCase
         User|null|array $owner = null
     ): ResourceBuilder
     {
-        $ownerId = '83335934-fc49-4c59-8199-de47c3d03ac3';
+        $ownerId = new Uuid('83335934-fc49-4c59-8199-de47c3d03ac3');
         if ($owner !== null) {
             if ($owner instanceof User) {
                 $ownerId = $owner->getId();
@@ -409,7 +410,7 @@ class ResourceBuilderTest extends TestCase
         }
         $userStorage = $this->createUserStorage($owner);
         $resource = new Resource(
-            id: '83335934-fc49-4c59-8199-de47c3d03ac5',
+            id: new Uuid('83335934-fc49-4c59-8199-de47c3d03ac5'),
             name: 'my-resource',
             displayName: 'displayName',
             ownerId: $ownerId,
@@ -425,7 +426,7 @@ class ResourceBuilderTest extends TestCase
         if ($expectSave) {
             $cache->expects($this->once())
                 ->method('remove')
-                ->with('83335934-fc49-4c59-8199-de47c3d03ac5');
+                ->with(new Uuid('83335934-fc49-4c59-8199-de47c3d03ac5'));
         } else {
             $cache->expects($this->never())
                 ->method('remove');

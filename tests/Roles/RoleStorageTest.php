@@ -12,6 +12,8 @@ use Hawk\AuthClient\Roles\Value\Role;
 use Hawk\AuthClient\Roles\Value\RoleList;
 use Hawk\AuthClient\Roles\Value\RoleReference;
 use Hawk\AuthClient\Roles\Value\RoleReferenceList;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -60,15 +62,16 @@ class RoleStorageTest extends TestCase
 
     public function testItCanGetAllInRefList(): void
     {
-        $role1 = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', []);
-        $role2 = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d002', 'bar', false, 'desc', []);
-        $role3 = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d003', 'baz', false, 'desc', []);
+        $role1 = new Role(new DummyUuid(), 'foo', false, 'desc', []);
+        $role2Id = new DummyUuid(2);
+        $role2 = new Role($role2Id, 'bar', false, 'desc', []);
+        $role3 = new Role(new DummyUuid(), 'baz', false, 'desc', []);
 
         $cache = $this->createStub(CacheAdapterInterface::class);
         $cache->method('remember')->willReturn(new RoleList($role1, $role2, $role3));
 
         $reference1 = new RoleReference('foo');
-        $reference2 = new RoleReference('f47ac10b-58cc-4372-a567-0e02b2c3d002');
+        $reference2 = new RoleReference((string)$role2Id);
         $reference3 = new RoleReference('baz');
 
         $sut = new RoleStorage($cache, $this->createStub(KeycloakApiClient::class));
@@ -92,9 +95,9 @@ class RoleStorageTest extends TestCase
 
     public function testItCanGetAll(): void
     {
-        $role1 = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', []);
-        $role2 = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d002', 'bar', false, 'desc', []);
-        $role3 = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d003', 'baz', false, 'desc', []);
+        $role1 = new Role(new DummyUuid(1), 'foo', false, 'desc', []);
+        $role2 = new Role(new DummyUuid(2), 'bar', false, 'desc', []);
+        $role3 = new Role(new DummyUuid(3), 'baz', false, 'desc', []);
 
         $cache = $this->createStub(CacheAdapterInterface::class);
         $cache->method('remember')->willReturn(new RoleList($role1, $role2, $role3));
@@ -108,7 +111,8 @@ class RoleStorageTest extends TestCase
 
     public function testItDoesCacheCorrectly(): void
     {
-        $apiRoleList = new RoleList(new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', []));
+        $id = new Uuid(new DummyUuid());
+        $apiRoleList = new RoleList(new Role($id, 'foo', false, 'desc', []));
         $api = $this->createMock(KeycloakApiClient::class);
         $api->expects($this->once())->method('fetchRoles')->willReturn($apiRoleList);
 
@@ -120,10 +124,10 @@ class RoleStorageTest extends TestCase
                 callable $valueGenerator,
                 callable $valueToCache,
                 callable $cacheToValue
-            ) use ($apiRoleList) {
+            ) use ($apiRoleList, $id) {
                 $this->assertEquals('keycloak.roles', $key);
                 $this->assertSame($apiRoleList, $valueGenerator());
-                $expectedJson = '[{"id":"f47ac10b-58cc-4372-a567-0e02b2c3d001","name":"foo","isClientRole":false,"description":"desc","attributes":[]}]';
+                $expectedJson = '[{"id":"' . $id . '","name":"foo","isClientRole":false,"description":"desc","attributes":[]}]';
                 $this->assertJsonStringEqualsJsonString(
                     $expectedJson,
                     $valueToCache($apiRoleList)

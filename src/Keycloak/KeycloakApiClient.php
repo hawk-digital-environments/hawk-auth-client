@@ -49,6 +49,7 @@ use Hawk\AuthClient\Users\UserFactory;
 use Hawk\AuthClient\Users\Value\User;
 use Hawk\AuthClient\Users\Value\UserConstraints;
 use Hawk\AuthClient\Util\LocalCacheFlusher;
+use Hawk\AuthClient\Util\Uuid;
 use Psr\Clock\ClockInterface;
 
 /**
@@ -140,7 +141,7 @@ class KeycloakApiClient
             ->execute($this->getConfiguredClient(), $cache);
     }
 
-    public function fetchUsersByIds(string ...$userIds): iterable
+    public function fetchUsersByIds(Uuid ...$userIds): iterable
     {
         return (new FetchUsersByIdsQuery(
             $this->userFactory,
@@ -148,13 +149,13 @@ class KeycloakApiClient
         ))->execute($this->getConfiguredClient());
     }
 
-    public function fetchGroupMemberIdStream(string $groupId, CacheAdapterInterface $cache): iterable
+    public function fetchGroupMemberIdStream(Uuid $groupId, CacheAdapterInterface $cache): iterable
     {
         return (new FetchGroupMemberIdStreamQuery($groupId))
             ->execute($this->getConfiguredClient(), $cache);
     }
 
-    public function fetchRoleMemberIdStream(string $roleId, CacheAdapterInterface $cache): iterable
+    public function fetchRoleMemberIdStream(Uuid $roleId, CacheAdapterInterface $cache): iterable
     {
         return (new FetchRoleMembersIdStreamQuery($roleId))
             ->execute($this->getConfiguredClient(), $cache);
@@ -173,16 +174,15 @@ class KeycloakApiClient
         $this->cacheFlusher->flushCache();
     }
 
-    public function fetchUserProfile(User $user): UserProfile
+    public function fetchUserProfile(User $user, bool $asAdminUser): UserProfile
     {
-        return (new FetchProfileDataQuery($this->config, $user))
+        return (new FetchProfileDataQuery($this->config, $user, $asAdminUser))
             ->execute($this->getConfiguredClient());
     }
 
-    public function updateUserProfile(User $user, array $changeSet): void
+    public function updateUserProfile(User $user, array $changeSet, bool $asAdminUser): void
     {
-        (new UpdateProfileDataQuery($user, $this->fetchUserProfile($user), $changeSet))
-            ->execute($this->getConfiguredClient());
+        (new UpdateProfileDataQuery($user, $changeSet, $asAdminUser))->execute($this->getConfiguredClient());
         $this->cacheFlusher->flushCache();
     }
 
@@ -192,7 +192,7 @@ class KeycloakApiClient
             ->execute($this->getConfiguredClient());
     }
 
-    public function fetchResourcesByIds(string ...$resourceIds): iterable
+    public function fetchResourcesByIds(Uuid ...$resourceIds): iterable
     {
         return (new FetchResourcesByIdsQuery(
             $this->resourceFactory,

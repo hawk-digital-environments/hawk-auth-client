@@ -6,6 +6,8 @@ namespace Hawk\AuthClient\Tests\Roles\Value;
 
 
 use Hawk\AuthClient\Roles\Value\Role;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -14,14 +16,15 @@ class RoleTest extends TestCase
 {
     public function testItConstructs(): void
     {
-        $sut = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', []);
+        $sut = new Role(new DummyUuid(), 'foo', false, 'desc', []);
         $this->assertInstanceOf(Role::class, $sut);
     }
 
     public function testItCanReturnGetterValues(): void
     {
-        $sut = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', ['attr' => 'val']);
-        $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $sut->getId());
+        $id = new DummyUuid();
+        $sut = new Role($id, 'foo', false, 'desc', ['attr' => 'val']);
+        $this->assertSame($id, $sut->getId());
         $this->assertEquals('foo', $sut->getName());
         $this->assertFalse($sut->isClientRole());
         $this->assertEquals('desc', $sut->getDescription());
@@ -32,22 +35,23 @@ class RoleTest extends TestCase
 
     public function testItCanStringify(): void
     {
-        $sut = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', []);
+        $sut = new Role(new DummyUuid(), 'foo', false, 'desc', []);
         $this->assertEquals('foo', (string)$sut);
     }
 
     public function testItCanBeJsonEncoded(): void
     {
-        $sut = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', []);
+        $id = new DummyUuid();
+        $sut = new Role($id, 'foo', false, 'desc', []);
         $this->assertEquals(
-            '{"id":"f47ac10b-58cc-4372-a567-0e02b2c3d001","name":"foo","isClientRole":false,"description":"desc","attributes":[]}',
+            '{"id":"' . $id . '","name":"foo","isClientRole":false,"description":"desc","attributes":[]}',
             json_encode($sut)
         );
     }
 
     public function testItCanBeRecreatedFromJson(): void
     {
-        $sut = new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', ['attr' => 'val']);
+        $sut = new Role(new Uuid(new DummyUuid()), 'foo', false, 'desc', ['attr' => 'val']);
         $sut2 = Role::fromArray($sut->jsonSerialize());
         $this->assertEquals($sut, $sut2);
     }

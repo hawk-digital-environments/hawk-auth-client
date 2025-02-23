@@ -15,7 +15,8 @@ use Hawk\AuthClient\Users\Value\ResourceUserList;
 use Hawk\AuthClient\Users\Value\User;
 use Hawk\AuthClient\Users\Value\UserConstraints;
 use Hawk\AuthClient\Users\Value\UserList;
-use League\OAuth2\Client\Token\AccessToken;
+use Hawk\AuthClient\Util\Uuid;
+use League\OAuth2\Client\Token\AccessTokenInterface;
 
 class UserStorage implements UserLayerInterface
 {
@@ -34,9 +35,9 @@ class UserStorage implements UserLayerInterface
     /**
      * @inheritDoc
      */
-    #[\Override] public function getOne(string|\Stringable $userId): User|null
+    #[\Override] public function getOne(Uuid|string|\Stringable $userId): User|null
     {
-        return $this->userCache->getOne((string)$userId);
+        return $this->userCache->getOne(Uuid::fromOne($userId));
     }
 
     /**
@@ -82,13 +83,13 @@ class UserStorage implements UserLayerInterface
             function () use (&$userIdToScopes, $resource, $includeOwner) {
                 foreach ($this->userCache->getResourceUserIdStream($resource, $includeOwner) as $val) {
                     [$userId, $scopes] = $val;
-                    $userIdToScopes[$userId] = $scopes;
+                    $userIdToScopes[(string)$userId] = $scopes;
                     yield $userId;
                 }
             },
-            function (string ...$ids) use (&$userIdToScopes) {
+            function (Uuid ...$ids) use (&$userIdToScopes) {
                 foreach ($this->userCache->getAllByIds(...$ids) as $user) {
-                    yield ResourceUser::fromUserAndScopes($user, $userIdToScopes[$user->getId()] ?? []);
+                    yield ResourceUser::fromUserAndScopes($user, $userIdToScopes[(string)$user->getId()] ?? []);
                 }
             }
         );
@@ -97,12 +98,12 @@ class UserStorage implements UserLayerInterface
     /**
      * Returns the user associated with the given access token.
      * May return null if the user is not found.
-     * @param AccessToken $token
+     * @param AccessTokenInterface $token
      * @param callable $fallback
      * @return User|null
      * @internal This method is not part of the public api and may be removed in future versions.
      */
-    public function getOneByToken(AccessToken $token, callable $fallback): User|null
+    public function getOneByToken(AccessTokenInterface $token, callable $fallback): User|null
     {
         return $this->userCache->getOneByToken($token, $fallback);
     }

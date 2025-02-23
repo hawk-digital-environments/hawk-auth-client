@@ -9,8 +9,8 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Hawk\AuthClient\Exception\ConnectionInfoRequestFailedException;
 use Hawk\AuthClient\Exception\InvalidUuidException;
-use Hawk\AuthClient\Keycloak\Value\ClientUuid;
 use Hawk\AuthClient\Keycloak\Value\ConnectionInfo;
+use Hawk\AuthClient\Util\Uuid;
 
 class FetchConnectionInfoQuery
 {
@@ -28,7 +28,8 @@ class FetchConnectionInfoQuery
                 $data['keycloakVersion'],
                 $data['extensionVersion'],
                 $data['clientId'],
-                new ClientUuid($data['clientUuid'])
+                new Uuid($data['clientUuid']),
+                new Uuid($data['clientServiceAccountUuid'])
             );
         } catch (GuzzleException|InvalidUuidException $e) {
             throw new ConnectionInfoRequestFailedException($e);

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Hawk\AuthClient\Exception;
 
 
+use Hawk\AuthClient\Util\Uuid;
+
 class MissingHawkUserClaimException extends AbstractInvalidUserDataException
 {
-    public function __construct(string $userId)
+    public function __construct(Uuid $userId)
     {
         parent::__construct(
             sprintf(

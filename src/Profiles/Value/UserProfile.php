@@ -107,7 +107,9 @@ class UserProfile implements \JsonSerializable, \IteratorAggregate
      * you have to access it with the key "test-attribute" when you are accessing it in the test-client. This has the
      * advantage that you can define the same attribute for different clients without any conflicts.
      *
-     * You can also access the default attributes (username, first name, last name, email) by setting the clientId to false.
+     * You can also access the default attributes (username, first name, last name, email); you can either set the clientId as false
+     * to ensure that ONLY the default attributes are returned. Otherwise, if key is one of the default attributes, the default value is returned,
+     * if there is no local attribute with the same name.
      *
      * To access attributes defined for other clients, you can set the clientId to the client id of the client you want to access.
      *
@@ -124,29 +126,20 @@ class UserProfile implements \JsonSerializable, \IteratorAggregate
      */
     public function getAttribute(string $key, mixed $default = null, false|null|string|\Stringable $clientId = null): mixed
     {
-        if ($clientId === false) {
-            if ($key === self::ATTRIBUTE_USERNAME) {
-                return $this->getUsername();
-            }
-            if ($key === self::ATTRIBUTE_FIRST_NAME) {
-                return $this->getFirstName();
-            }
-            if ($key === self::ATTRIBUTE_LAST_NAME) {
-                return $this->getLastName();
-            }
-            if ($key === self::ATTRIBUTE_EMAIL) {
-                return $this->getEmail();
-            }
-            if ($key === self::ATTRIBUTE_EMAIL_VERIFIED) {
-                return $this->additionalData[self::ATTRIBUTE_EMAIL_VERIFIED] ?? false;
-            }
-        }
+        $defaultAttribute = match ($key) {
+            self::ATTRIBUTE_USERNAME => $this->getUsername(),
+            self::ATTRIBUTE_FIRST_NAME => $this->getFirstName(),
+            self::ATTRIBUTE_LAST_NAME => $this->getLastName(),
+            self::ATTRIBUTE_EMAIL => $this->getEmail(),
+            self::ATTRIBUTE_EMAIL_VERIFIED => $this->additionalData[self::ATTRIBUTE_EMAIL_VERIFIED] ?? false,
+            default => $default
+        };
 
         $fullName = $this->getFullName($key, $clientId);
 
         return $this->unpackAttribute(
             $fullName,
-            $this->attributes[$fullName] ?? null
+            $this->attributes[$fullName] ?? $defaultAttribute
         ) ?? $default;
     }
 
@@ -169,6 +162,8 @@ class UserProfile implements \JsonSerializable, \IteratorAggregate
      * If you want to build a form for your user, always use the structure provided by this method!
      *
      * @return ProfileStructure
+     * @see ProfileLayerInterface::getOneAsAdmin() to get the structure of the users profile in the view of an admin.
+     * This determines the range of changeable and required fields.
      */
     public function getStructure(): ProfileStructure
     {

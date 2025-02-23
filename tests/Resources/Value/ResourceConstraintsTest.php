@@ -6,6 +6,7 @@ namespace Hawk\AuthClient\Tests\Resources\Value;
 
 
 use Hawk\AuthClient\Resources\Value\ResourceConstraints;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\Value\User;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -81,19 +82,26 @@ class ResourceConstraintsTest extends TestCase
         $this->assertSame('83335934-fc49-4c59-8199-de47c3d03ac5', $sut2->getOwner());
         $this->assertFalse($sut2->isSharedOnly());
 
+        $id = new DummyUuid();
         $owner = $this->createStub(User::class);
-        $owner->method('getId')->willReturn('83335934-fc49-4c59-8199-de47c3d03ac9');
+        $owner->method('getId')->willReturn($id);
         $sut4 = $sut3->withOwner($owner);
         $this->assertNotSame($sut3, $sut4);
-        $this->assertSame('83335934-fc49-4c59-8199-de47c3d03ac9', $sut4->getOwner());
+        $this->assertSame((string)$id, $sut4->getOwner());
         $this->assertTrue($sut4->isSharedOnly()); // Kept, because not directly set
 
         $sut5 = $sut4->withOwner(null);
         $this->assertNotSame($sut4, $sut5);
         $this->assertNull($sut5->getOwner());
         $this->assertFalse($sut5->isSharedOnly());
-        $this->assertSame('83335934-fc49-4c59-8199-de47c3d03ac9', $sut4->getOwner());
+        $this->assertSame((string)$id, $sut4->getOwner());
         $this->assertTrue($sut4->isSharedOnly());
+
+        $id = new DummyUuid();
+        $sut6 = $sut5->withOwner($id);
+        $this->assertNotSame($sut5, $sut6);
+        $this->assertSame((string)$id, $sut6->getOwner());
+        $this->assertFalse($sut6->isSharedOnly());
     }
 
     public function testItCanSetAndGetSharedWithFilter(): void
@@ -106,17 +114,18 @@ class ResourceConstraintsTest extends TestCase
         $this->assertSame('83335934-fc49-4c59-8199-de47c3d03ac5', $sut2->getSharedWith());
         $this->assertNull($sut->getSharedWith());
 
+        $id = new DummyUuid();
         $otherUser = $this->createStub(User::class);
-        $otherUser->method('getId')->willReturn('83335934-fc49-4c59-8199-de47c3d03ac8');
+        $otherUser->method('getId')->willReturn($id);
         $sut3 = $sut2->withSharedWith($otherUser);
         $this->assertNotSame($sut2, $sut3);
-        $this->assertSame('83335934-fc49-4c59-8199-de47c3d03ac8', $sut3->getSharedWith());
+        $this->assertSame((string)$id, $sut3->getSharedWith());
         $this->assertSame('83335934-fc49-4c59-8199-de47c3d03ac5', $sut2->getSharedWith());
 
         $sut4 = $sut3->withSharedWith(null);
         $this->assertNotSame($sut3, $sut4);
         $this->assertNull($sut4->getSharedWith());
-        $this->assertSame('83335934-fc49-4c59-8199-de47c3d03ac8', $sut3->getSharedWith());
+        $this->assertSame((string)$id, $sut3->getSharedWith());
     }
 
     public function testItCanSetAndGetTypeFilter(): void
@@ -137,11 +146,13 @@ class ResourceConstraintsTest extends TestCase
 
     public function testItCanGetAndSetIdFilter(): void
     {
+        $id1 = new DummyUuid(1);
+        $id2 = new DummyUuid(2);
         $sut = new ResourceConstraints();
         $this->assertEmpty($sut->getIds());
-        $sut2 = $sut->withIds('83335934-fc49-4c59-8199-de47c3d03ac5', '83335934-fc49-4c59-8199-de47c3d03ac5', '83335934-fc49-4c59-8199-de47c3d03ac3');
+        $sut2 = $sut->withIds($id1, $id2, $id1);
         $this->assertNotSame($sut, $sut2);
-        $this->assertSame(['83335934-fc49-4c59-8199-de47c3d03ac5', '83335934-fc49-4c59-8199-de47c3d03ac3'], $sut2->getIds());
+        $this->assertSame([$id1, $id2], $sut2->getIds());
         $this->assertEmpty($sut->getIds());
     }
 }

@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Hawk\AuthClient\Users\Value;
 
 
+use Hawk\AuthClient\Groups\Value\Group;
 use Hawk\AuthClient\Groups\Value\GroupList;
 use Hawk\AuthClient\Groups\Value\GroupReferenceList;
 use Hawk\AuthClient\Profiles\Value\UserProfile;
 use Hawk\AuthClient\Roles\Value\Role;
 use Hawk\AuthClient\Roles\Value\RoleList;
 use Hawk\AuthClient\Roles\Value\RoleReferenceList;
-use Hawk\AuthClient\Util\Validator;
+use Hawk\AuthClient\Util\Uuid;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 
 class User implements ResourceOwnerInterface, \JsonSerializable
@@ -22,7 +23,7 @@ class User implements ResourceOwnerInterface, \JsonSerializable
     public const string ARRAY_KEY_ROLES = 'roles';
     public const string ARRAY_KEY_GROUPS = 'groups';
 
-    protected string $id;
+    protected Uuid $id;
     protected string $username;
     protected UserClaims $claims;
     protected RoleReferenceList $roleReferenceList;
@@ -33,7 +34,7 @@ class User implements ResourceOwnerInterface, \JsonSerializable
     protected UserContext $context;
 
     public function __construct(
-        string             $id,
+        Uuid $id,
         string             $username,
         UserClaims         $claims,
         RoleReferenceList  $roleReferenceList,
@@ -41,8 +42,6 @@ class User implements ResourceOwnerInterface, \JsonSerializable
         UserContext        $context
     )
     {
-        Validator::requireUuid($id);
-
         $this->id = $id;
         $this->username = $username;
         $this->claims = $claims;
@@ -54,7 +53,7 @@ class User implements ResourceOwnerInterface, \JsonSerializable
     /**
      * @inheritDoc
      */
-    public function getId(): string
+    public function getId(): Uuid
     {
         return $this->id;
     }
@@ -154,11 +153,11 @@ class User implements ResourceOwnerInterface, \JsonSerializable
     #[\Override] public function toArray(): array
     {
         return [
-            self::ARRAY_KEY_ID => $this->id,
+            self::ARRAY_KEY_ID => (string)$this->id,
             self::ARRAY_KEY_USERNAME => $this->username,
             self::ARRAY_KEY_CLAIMS => $this->claims->jsonSerialize(),
-            self::ARRAY_KEY_ROLES => $this->roleReferenceList->jsonSerialize(),
-            self::ARRAY_KEY_GROUPS => $this->groupReferenceList->jsonSerialize()
+            self::ARRAY_KEY_ROLES => array_map('strval', $this->roleReferenceList->jsonSerialize()),
+            self::ARRAY_KEY_GROUPS => array_map('strval', $this->groupReferenceList->jsonSerialize())
         ];
     }
 

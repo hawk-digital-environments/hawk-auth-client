@@ -37,6 +37,7 @@ env_usage() {
   printf "  %s   basically your docker-compose exec into the main app container\n" "ssh        "
   printf "  %s   runs a certain composer command for the project\n" "composer   "
   printf "  %s   allows you to run tests against the current codebase\n" "test       "
+  printf "  %s   Runs certain tasks for the frontend client\n" "frontend   "
   echo
 
   # :command.long_usage
@@ -354,6 +355,79 @@ env_test_unit_usage() {
     printf "  %s\n" "--coverage, -c"
     printf "    Generates a coverage report\n"
     echo
+
+    # :flag.usage
+    printf "  %s\n" "--coverage-text, -t"
+    printf "    Generates a coverage report in text format\n"
+    echo
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+env_frontend_usage() {
+  printf "env frontend - Runs certain tasks for the frontend client\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  env frontend COMMAND\n"
+  printf "  env frontend [COMMAND] --help | -h\n"
+  echo
+  # :command.usage_commands
+  printf "%s\n" "Commands:"
+  printf "  %s   builds the frontend client\n" "build"
+  printf "  %s   watches the frontend client for changes\n" "watch"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+env_frontend_build_usage() {
+  printf "env frontend build - builds the frontend client\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  env frontend build\n"
+  printf "  env frontend build --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+env_frontend_watch_usage() {
+  printf "env frontend watch - watches the frontend client for changes\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  env frontend watch\n"
+  printf "  env frontend watch --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
 
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
@@ -904,11 +978,29 @@ env_test_unit_command() {
 
   ARGS="${other_args[*]}"
 
-  if [[ ${args[--coverage]} ]]; then
+  if [[ ${args[--coverage-text]} ]]; then
+    dockerSsh ${DEFAULT_SERVICE_NAME} "composer run test:unit:coverage:text $ARGS"
+  elif [[ ${args[--coverage]} ]]; then
     dockerSsh ${DEFAULT_SERVICE_NAME} "composer run test:unit:coverage $ARGS"
   else
     dockerSsh ${DEFAULT_SERVICE_NAME} "composer run test:unit $ARGS"
   fi
+
+}
+
+# :command.function
+env_frontend_build_command() {
+
+  # _env/src/frontend_build_command.sh
+  dockerSsh node "npm run build"
+
+}
+
+# :command.function
+env_frontend_watch_command() {
+
+  # _env/src/frontend_watch_command.sh
+  dockerSsh node "npm run watch"
 
 }
 
@@ -1016,6 +1108,13 @@ parse_requirements() {
       action="test"
       shift
       env_test_parse_requirements "$@"
+      shift $#
+      ;;
+
+    frontend)
+      action="frontend"
+      shift
+      env_frontend_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1691,6 +1790,14 @@ env_test_unit_parse_requirements() {
         shift
         ;;
 
+      # :flag.case
+      --coverage-text | -t)
+
+        # :flag.case_no_arg
+        args['--coverage-text']=1
+        shift
+        ;;
+
       --)
         shift
         other_args+=("$@")
@@ -1707,6 +1814,171 @@ env_test_unit_parse_requirements() {
         # :command.parse_requirements_case_catch_all
         other_args+=("$1")
         shift
+
+        ;;
+
+    esac
+  done
+
+}
+
+# :command.parse_requirements
+env_frontend_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        env_frontend_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action=${1:-}
+
+  case $action in
+    -*) ;;
+
+    build)
+      action="build"
+      shift
+      env_frontend_build_parse_requirements "$@"
+      shift $#
+      ;;
+
+    watch)
+      action="watch"
+      shift
+      env_frontend_watch_parse_requirements "$@"
+      shift $#
+      ;;
+
+    # :command.command_fallback
+    "")
+      env_frontend_usage >&2
+      exit 1
+      ;;
+
+    *)
+      printf "invalid command: %s\n" "$action" >&2
+      exit 1
+      ;;
+
+  esac
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+# :command.parse_requirements
+env_frontend_build_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        env_frontend_build_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="frontend build"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+# :command.parse_requirements
+env_frontend_watch_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        env_frontend_watch_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="frontend watch"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
 
         ;;
 
@@ -1775,6 +2047,9 @@ run() {
     "composer") env_composer_command ;;
     "test") env_test_command ;;
     "test unit") env_test_unit_command ;;
+    "frontend") env_frontend_command ;;
+    "frontend build") env_frontend_build_command ;;
+    "frontend watch") env_frontend_watch_command ;;
   esac
 }
 

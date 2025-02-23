@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Tests\Groups\Value;
 
 use Hawk\AuthClient\Groups\Value\Group;
 use Hawk\AuthClient\Groups\Value\GroupList;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -19,7 +20,7 @@ class GroupTest extends TestCase
     protected function setUp(): void
     {
         $this->children = new GroupList();
-        $this->sut = new Group('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'bar', '/bar', $this->children);
+        $this->sut = new Group(new DummyUuid(), 'bar', '/bar', $this->children);
     }
 
     public function testItConstructs(): void
@@ -30,7 +31,7 @@ class GroupTest extends TestCase
 
     public function testItReturnsGivenValues(): void
     {
-        $this->assertEquals('f47ac10b-58cc-4372-a567-0e02b2c3d001', $this->sut->getId());
+        $this->assertEquals(new DummyUuid(), $this->sut->getId());
         $this->assertEquals('bar', $this->sut->getName());
         $this->assertEquals('/bar', $this->sut->getPath());
         $this->assertSame($this->children, $this->sut->getChildren());
@@ -44,7 +45,7 @@ class GroupTest extends TestCase
     public function testItCanBeJsonEncoded(): void
     {
         $this->assertJsonStringEqualsJsonString(
-            '{"id":"f47ac10b-58cc-4372-a567-0e02b2c3d001","name":"bar","path":"/bar","children":[]}',
+            '{"id":"' . (new DummyUuid()) . '","name":"bar","path":"/bar","children":[]}',
             json_encode($this->sut)
         );
 

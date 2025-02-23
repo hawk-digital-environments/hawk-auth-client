@@ -8,6 +8,7 @@ use Hawk\AuthClient\Auth\KeycloakProvider;
 use Hawk\AuthClient\Auth\StatefulAuth;
 use Hawk\AuthClient\Auth\StatelessAuth;
 use Hawk\AuthClient\Cache\CacheAdapterInterface;
+use Hawk\AuthClient\FrontendApi\FrontendApi;
 use Hawk\AuthClient\Keycloak\Value\ConnectionConfig;
 use Hawk\AuthClient\Layers\GroupLayerInterface;
 use Hawk\AuthClient\Layers\GuardLayerInterface;
@@ -197,5 +198,15 @@ class AuthClient
     public function resources(): ResourceLayerInterface
     {
         return $this->container->getResourceStorage();
+    }
+
+    /**
+     * The Frontend Api allows you to interact with some features of this client
+     * using the `@hawk-hhg/auth-client` javascript (npm) package.
+     * @return FrontendApi
+     */
+    public function frontendApi(): FrontendApi
+    {
+        return $this->container->getFrontendApi();
     }
 }

@@ -68,3 +68,13 @@ commands:
           - long: --coverage
             short: -c
             help: Generates a coverage report
+          - long: --coverage-text
+            short: -t
+            help: Generates a coverage report in text format
+  - name: frontend
+    help: Runs certain tasks for the frontend client
+    commands:
+      - name: build
+        help: builds the frontend client
+      - name: watch
+        help: watches the frontend client for changes

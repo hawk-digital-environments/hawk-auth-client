@@ -8,6 +8,7 @@ use Hawk\AuthClient\Exception\FailedToRemoveResourceException;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\RemoveResourceQuery;
 use Hawk\AuthClient\Resources\Value\Resource;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(RemoveResourceQuery::class)]
@@ -17,8 +18,9 @@ class RemoveResourceQueryTest extends KeycloakQueryTestCase
 {
     public function testItCanDeleteAResource(): void
     {
+        $resourceId = new DummyUuid();
         $resource = $this->createStub(Resource::class);
-        $resource->method('getId')->willReturn('resource-id');
+        $resource->method('getId')->willReturn($resourceId);
 
         $this->cacheFlusher->expects($this->once())->method('flushCache');
 
@@ -26,7 +28,7 @@ class RemoveResourceQueryTest extends KeycloakQueryTestCase
             ->method('request')
             ->with(
                 'DELETE',
-                'realms/{realm}/authz/protection/resource_set/' . $resource->getId()
+                'realms/{realm}/authz/protection/resource_set/' . $resourceId
             );
 
         $this->api->removeResource($resource);
@@ -35,9 +37,10 @@ class RemoveResourceQueryTest extends KeycloakQueryTestCase
     public function testItFailsWithSpeakingExceptionIfResourceCouldNotBeDeleted(): void
     {
         $this->expectException(FailedToRemoveResourceException::class);
-        
+
+        $resourceId = new DummyUuid();
         $resource = $this->createStub(Resource::class);
-        $resource->method('getId')->willReturn('resource-id');
+        $resource->method('getId')->willReturn($resourceId);
 
         $this->cacheFlusher->expects($this->never())->method('flushCache');
 
@@ -45,7 +48,7 @@ class RemoveResourceQueryTest extends KeycloakQueryTestCase
             ->method('request')
             ->with(
                 'DELETE',
-                'realms/{realm}/authz/protection/resource_set/' . $resource->getId()
+                'realms/{realm}/authz/protection/resource_set/' . $resourceId
             )
             ->willThrowException($this->createClientNotAuthorizedException());
 

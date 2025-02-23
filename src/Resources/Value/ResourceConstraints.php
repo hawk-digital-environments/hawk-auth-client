@@ -6,6 +6,7 @@ namespace Hawk\AuthClient\Resources\Value;
 
 
 use Hawk\AuthClient\Users\Value\User;
+use Hawk\AuthClient\Util\Uuid;
 
 class ResourceConstraints
 {
@@ -174,7 +175,7 @@ class ResourceConstraints
 
     /**
      * Returns the list of resource ids that are set as filters.
-     * @return array
+     * @return Uuid[]
      */
     public function getIds(): array
     {
@@ -186,13 +187,13 @@ class ResourceConstraints
      * If the filter is set, the "name", "owner", "type" and "uri" filters are ignored.
      * Exception owner + sharedOnly, this is still working!
      *
-     * @param string|\Stringable ...$ids The ids of the resources to return.
+     * @param Uuid ...$ids
      * @return $this
      */
-    public function withIds(string|\Stringable ...$ids): static
+    public function withIds(Uuid ...$ids): static
     {
         $clone = clone $this;
-        $clone->ids = array_values(array_unique(array_map('strval', $ids)));
+        $clone->ids = array_unique($ids);
         return $clone;
     }
 }

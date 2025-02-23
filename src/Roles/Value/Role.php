@@ -5,25 +5,24 @@ declare(strict_types=1);
 namespace Hawk\AuthClient\Roles\Value;
 
 
-use Hawk\AuthClient\Util\Validator;
+use Hawk\AuthClient\Util\Uuid;
 
 readonly class Role implements \JsonSerializable, \Stringable
 {
-    private string $id;
+    private Uuid $id;
     private string $name;
     private bool $isClientRole;
     private string|null $description;
     private array $attributes;
 
     public function __construct(
-        string      $id,
+        Uuid $id,
         string      $name,
         bool        $isClientRole,
         string|null $description,
         array       $attributes
     )
     {
-        Validator::requireUuid($id);
         $this->id = $id;
         $this->name = $name;
         $this->isClientRole = $isClientRole;
@@ -33,9 +32,9 @@ readonly class Role implements \JsonSerializable, \Stringable
 
     /**
      * Returns the unique UUID of the role.
-     * @return string
+     * @return Uuid
      */
-    public function getId(): string
+    public function getId(): Uuid
     {
         return $this->id;
     }
@@ -106,7 +105,7 @@ readonly class Role implements \JsonSerializable, \Stringable
     #[\Override] public function jsonSerialize(): array
     {
         return [
-            'id' => $this->id,
+            'id' => (string)$this->id,
             'name' => $this->name,
             'isClientRole' => $this->isClientRole,
             'description' => $this->description,
@@ -117,7 +116,7 @@ readonly class Role implements \JsonSerializable, \Stringable
     public static function fromArray(array $data): self
     {
         return new self(
-            $data['id'],
+            new Uuid($data['id']),
             $data['name'],
             $data['isClientRole'],
             $data['description'],

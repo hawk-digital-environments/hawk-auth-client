@@ -10,6 +10,7 @@ use Hawk\AuthClient\Exception\FailedToSetUserResourcePermissionException;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\SetResourceUserPermissionsQuery;
 use Hawk\AuthClient\Resources\Value\Resource;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\Value\User;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -21,10 +22,12 @@ class SetResourceUserPermissionsQueryTest extends KeycloakQueryTestCase
 {
     public function testItCanUpdateUserPermissions(): void
     {
+        $resourceId = new DummyUuid(1);
         $resource = $this->createStub(Resource::class);
-        $resource->method('getId')->willReturn('resource-id');
+        $resource->method('getId')->willReturn($resourceId);
+        $userId = new DummyUuid(2);
         $user = $this->createStub(User::class);
-        $user->method('getId')->willReturn('user-id');
+        $user->method('getId')->willReturn($userId);
         $scopes = ['read', 'write'];
 
         $this->cacheFlusher->expects($this->once())->method('flushCache');
@@ -33,7 +36,7 @@ class SetResourceUserPermissionsQueryTest extends KeycloakQueryTestCase
             ->method('request')
             ->with(
                 'PUT',
-                'realms/{realm}/hawk/resources/' . $resource->getId() . '/users/' . $user->getId(),
+                'realms/{realm}/hawk/resources/' . $resourceId . '/users/' . $userId,
                 ['json' => ['scopes' => $scopes]]
             );
 
@@ -42,10 +45,12 @@ class SetResourceUserPermissionsQueryTest extends KeycloakQueryTestCase
 
     public function testItFailsToUpdateUserPermissionsIfUnauthorized(): void
     {
+        $resourceId = new DummyUuid(1);
         $resource = $this->createStub(Resource::class);
-        $resource->method('getId')->willReturn('resource-id');
+        $resource->method('getId')->willReturn($resourceId);
+        $userId = new DummyUuid(2);
         $user = $this->createStub(User::class);
-        $user->method('getId')->willReturn('user-id');
+        $user->method('getId')->willReturn($userId);
         $scopes = ['read', 'write'];
 
         $this->cacheFlusher->expects($this->never())->method('flushCache');
@@ -54,7 +59,7 @@ class SetResourceUserPermissionsQueryTest extends KeycloakQueryTestCase
             ->method('request')
             ->with(
                 'PUT',
-                'realms/{realm}/hawk/resources/' . $resource->getId() . '/users/' . $user->getId(),
+                'realms/{realm}/hawk/resources/' . $resourceId . '/users/' . $userId,
                 ['json' => ['scopes' => $scopes]]
             )
             ->willThrowException($this->createClientNotAuthorizedException());
@@ -67,11 +72,13 @@ class SetResourceUserPermissionsQueryTest extends KeycloakQueryTestCase
 
     public function testItFailsToUpdateUserPermissionsWithSpeakingException(): void
     {
+        $resourceId = new DummyUuid(1);
         $resource = $this->createStub(Resource::class);
-        $resource->method('getId')->willReturn('resource-id');
+        $resource->method('getId')->willReturn($resourceId);
         $resource->method('getName')->willReturn('resource-name');
+        $userId = new DummyUuid(2);
         $user = $this->createStub(User::class);
-        $user->method('getId')->willReturn('user-id');
+        $user->method('getId')->willReturn($userId);
         $user->method('getUsername')->willReturn('user-username');
         $scopes = ['read', 'write'];
 
@@ -81,7 +88,7 @@ class SetResourceUserPermissionsQueryTest extends KeycloakQueryTestCase
             ->method('request')
             ->with(
                 'PUT',
-                'realms/{realm}/hawk/resources/' . $resource->getId() . '/users/' . $user->getId(),
+                'realms/{realm}/hawk/resources/' . $resourceId . '/users/' . $userId,
                 ['json' => ['scopes' => $scopes]]
             )
             ->willThrowException($this->createClientException());

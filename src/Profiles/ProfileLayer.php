@@ -9,6 +9,7 @@ use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Value\ConnectionConfig;
 use Hawk\AuthClient\Layers\ProfileLayerInterface;
 use Hawk\AuthClient\Profiles\Structure\ProfileStructureBuilder;
+use Hawk\AuthClient\Profiles\Value\UserProfile;
 use Hawk\AuthClient\Users\Value\User;
 
 class ProfileLayer implements ProfileLayerInterface
@@ -43,12 +44,21 @@ class ProfileLayer implements ProfileLayerInterface
     /**
      * @inheritDoc
      */
-    #[\Override] public function update(User $user): ProfileUpdater
+    #[\Override] public function update(User $user, bool|null $asAdmin = null): ProfileUpdater
     {
         return new ProfileUpdater(
             $user,
             $this->config,
-            $this->storage
+            $this->storage,
+            $asAdmin ?? false
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    #[\Override] public function getOneAsAdmin(User $user): UserProfile
+    {
+        return $this->storage->getProfileOfUser($user, true);
     }
 }

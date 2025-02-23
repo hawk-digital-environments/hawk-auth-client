@@ -10,6 +10,7 @@ use Hawk\AuthClient\Resources\Value\Resource;
 use Hawk\AuthClient\Resources\Value\ResourceScopes;
 use Hawk\AuthClient\Users\UserStorage;
 use Hawk\AuthClient\Users\Value\UserContext;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -111,10 +112,10 @@ JSON,
         $context->method('getStorage')->willReturn($userStorage);
 
         $resource = new Resource(
-            'fa05c79f-bc41-416a-ad85-2669d72461a5',
+            new Uuid('fa05c79f-bc41-416a-ad85-2669d72461a5'),
             'name',
             'displayName',
-            '72c97a1f-1ef9-4ba4-8a9d-3cd844488591',
+            new Uuid('72c97a1f-1ef9-4ba4-8a9d-3cd844488591'),
             false,
             [],
             '',

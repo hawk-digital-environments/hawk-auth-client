@@ -63,13 +63,13 @@ class FetchRolesQueryTest extends KeycloakQueryTestCase
         $roleArray = iterator_to_array($roleList);
 
         $this->assertEquals('realm-role', $roleArray[0]->getName());
-        $this->assertEquals('6f526a25-1111-4b03-a24a-9617ad0a4c6d', $roleArray[0]->getId());
+        $this->assertEquals('6f526a25-1111-4b03-a24a-9617ad0a4c6d', (string)$roleArray[0]->getId());
         $this->assertEquals('A demo role in scope of the whole realm', $roleArray[0]->getDescription());
         $this->assertEquals('value', $roleArray[0]->getAttribute('key'));
         $this->assertFalse($roleArray[0]->isClientRole());
 
         $this->assertEquals('client-role', $roleArray[1]->getName());
-        $this->assertEquals('9d86335f-1732-4bfd-9d0f-8852af0f7c11', $roleArray[1]->getId());
+        $this->assertEquals('9d86335f-1732-4bfd-9d0f-8852af0f7c11', (string)$roleArray[1]->getId());
         $this->assertEquals('A demo role that is only available in the hawk client', $roleArray[1]->getDescription());
         $this->assertEmpty($roleArray[1]->getAttributes());
         $this->assertTrue($roleArray[1]->isClientRole());

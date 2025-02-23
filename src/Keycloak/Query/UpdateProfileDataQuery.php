@@ -22,27 +22,30 @@ class UpdateProfileDataQuery
     ];
 
     protected User $user;
-    protected UserProfile $currentProfile;
     protected array $changeSet;
+    protected bool $asAdmin;
 
     public function __construct(
         User        $user,
-        UserProfile $currentProfile,
-        array       $changeSet
+        array $changeSet,
+        bool  $asAdmin
     )
     {
         $this->user = $user;
-        $this->currentProfile = $currentProfile;
         $this->changeSet = $changeSet;
+        $this->asAdmin = $asAdmin;
     }
 
     public function execute(ClientInterface $client): void
     {
         try {
             $client->request(
-                'PUT',
+                'PATCH',
                 'realms/{realm}/hawk/profile/' . $this->user->getId(),
                 [
+                    'query' => [
+                        'mode' => $this->asAdmin ? 'admin' : 'user'
+                    ],
                     'json' => $this->buildPayload()
                 ]
             );
@@ -84,31 +87,18 @@ class UpdateProfileDataQuery
 
     protected function buildPayload(): array
     {
-        $globalChanges = [];
+        $payload = [];
         $attributeChanges = $this->changeSet;
         foreach (UserProfile::ROOT_LEVEL_ATTRIBUTES as $field) {
             if (array_key_exists($field, $attributeChanges)) {
-                $globalChanges[$field] = $attributeChanges[$field];
+                $payload[$field] = $attributeChanges[$field];
                 unset($attributeChanges[$field]);
             }
         }
 
-        $payload = array_merge(
-            [
-                'id' => $this->user->getId(),
-                'attributes' => array_merge(
-                    $this->currentProfile->getRawAttributes(),
-                    $attributeChanges
-                ),
-                'email' => $this->currentProfile->getEmail(),
-                'firstName' => $this->currentProfile->getFirstName(),
-                'lastName' => $this->currentProfile->getLastName(),
-                'username' => $this->user->getUsername(),
-                'userProfileMetadata' => $this->currentProfile->getStructure()->jsonSerialize(),
-            ],
-            $this->currentProfile->getAdditionalData(),
-            $globalChanges,
-        );
+        if (!empty($attributeChanges)) {
+            $payload['attributes'] = $attributeChanges;
+        }
 
         return array_filter(
             $payload,

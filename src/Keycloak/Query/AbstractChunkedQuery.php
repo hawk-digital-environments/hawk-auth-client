@@ -32,9 +32,10 @@ abstract class AbstractChunkedQuery
 
         if ($cache !== null) {
             $cacheKey = $this->getCacheKey();
-            $valueGenerator = static fn(int $first, int $requestSize) => $cache->remember(
+            $valueGenerator = fn(int $first, int $requestSize) => $cache->remember(
                 'chunkedQuery.' . hash('sha256', $cacheKey . '-' . $first . '-' . $requestSize),
-                valueGenerator: fn() => $valueGenerator($first, $requestSize)
+                valueGenerator: fn() => $valueGenerator($first, $requestSize),
+                ttl: $this->getCacheTtl()
             );
         }
 
@@ -76,6 +77,15 @@ abstract class AbstractChunkedQuery
     protected function getMaxIterations(): int
     {
         return 50000;
+    }
+
+    /**
+     * Returns the time-to-live for the cache. If null, the cache will not be used.
+     * @return int|null
+     */
+    protected function getCacheTtl(): int|null
+    {
+        return null;
     }
 
     /**

@@ -8,12 +8,15 @@ namespace Hawk\AuthClient\Users;
 use Hawk\AuthClient\Cache\CacheAdapterInterface;
 use Hawk\AuthClient\Cache\Util\AbstractEntityCache;
 use Hawk\AuthClient\Groups\Value\Group;
+use Hawk\AuthClient\Keycloak\ConnectionInfoStorage;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Resources\Value\Resource;
+use Hawk\AuthClient\Resources\Value\ResourceScopes;
 use Hawk\AuthClient\Roles\Value\Role;
 use Hawk\AuthClient\Users\Value\User;
 use Hawk\AuthClient\Users\Value\UserConstraints;
-use League\OAuth2\Client\Token\AccessToken;
+use Hawk\AuthClient\Util\Uuid;
+use League\OAuth2\Client\Token\AccessTokenInterface;
 
 /**
  * @extends AbstractEntityCache<User>
@@ -23,26 +26,75 @@ class UserCache extends AbstractEntityCache
 {
     protected UserFactory $userFactory;
     protected KeycloakApiClient $api;
+    protected ConnectionInfoStorage $connectionInfoStorage;
+    protected Uuid|null $clientUuid = null;
+    protected Uuid|null $clientServiceUserUuid = null;
 
     public function __construct(
         CacheAdapterInterface $cache,
         UserFactory           $userFactory,
-        KeycloakApiClient     $api
+        KeycloakApiClient     $api,
+        ConnectionInfoStorage $connectionInfoStorage
     )
     {
         parent::__construct($cache);
         $this->userFactory = $userFactory;
         $this->api = $api;
+        $this->connectionInfoStorage = $connectionInfoStorage;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    #[\Override] public function getAllByIds(Uuid ...$ids): iterable
+    {
+        return parent::getAllByIds(...$this->convertClientUUidToServiceUserUuidInList(...$ids));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    #[\Override] public function getOne(Uuid $id, bool $fetchMissing = true): object|null
+    {
+        return parent::getOne($this->convertClientUuidToServiceUserUuid($id), $fetchMissing);
+    }
+
+    protected function convertClientUuidToServiceUserUuid(Uuid $id): Uuid
+    {
+        $this->initializeClientUuidMap();
+        return (string)$id === (string)$this->clientUuid ? $this->clientServiceUserUuid : $id;
+    }
+
+    protected function convertClientUUidToServiceUserUuidInList(Uuid ...$ids): array
+    {
+        $this->initializeClientUuidMap();
+        return Uuid::fromList(
+            ...array_map(
+                fn(Uuid $id) => (string)$id === (string)$this->clientUuid
+                    ? $this->clientServiceUserUuid
+                    : $id,
+                $ids
+            )
+        );
+    }
+
+    protected function initializeClientUuidMap(): void
+    {
+        if ($this->clientUuid === null || $this->clientServiceUserUuid === null) {
+            $connectionInfo = $this->connectionInfoStorage->getConnectionInfo();
+            $this->clientUuid = $connectionInfo->getClientUuid();
+            $this->clientServiceUserUuid = $connectionInfo->getClientServiceAccountUuid();
+        }
     }
 
     /**
      * Uses an additional hop in the cache pool to resolve the user id by the token.
      *
-     * @param AccessToken $token
+     * @param AccessTokenInterface $token
      * @param callable():(User|null) $fallback
      * @return User|null
      */
-    public function getOneByToken(AccessToken $token, callable $fallback): User|null
+    public function getOneByToken(AccessTokenInterface $token, callable $fallback): User|null
     {
         $userId = $this->cache->remember(
             'keycloak.user.by_token.' . hash('sha256', $token->getToken()),
@@ -60,7 +112,7 @@ class UserCache extends AbstractEntityCache
     /**
      * Returns a lazy stream of user ids that match the given constraints.
      * @param UserConstraints|null $constraints
-     * @return iterable<string>
+     * @return iterable<Uuid>
      */
     public function getUserIdStream(UserConstraints|null $constraints): iterable
     {
@@ -70,7 +122,7 @@ class UserCache extends AbstractEntityCache
     /**
      * Returns a lazy stream of user ids that are members of the given group.
      * @param Group $group
-     * @return iterable<string>
+     * @return iterable<Uuid>
      */
     public function getGroupMemberIdStream(Group $group): iterable
     {
@@ -80,7 +132,7 @@ class UserCache extends AbstractEntityCache
     /**
      * Returns a lazy stream of user ids that are members of the given role.
      * @param Role $role
-     * @return iterable<string>
+     * @return iterable<Uuid>
      */
     public function getRoleMemberIdStream(Role $role): iterable
     {
@@ -91,7 +143,7 @@ class UserCache extends AbstractEntityCache
      * Returns a lazy stream of user ids that have access to the given resource.
      * @param Resource $resource
      * @param bool $includeOwner
-     * @return iterable<array{int,array<string>}>
+     * @return iterable<array{Uuid,ResourceScopes}>
      */
     public function getResourceUserIdStream(Resource $resource, bool $includeOwner): iterable
     {
@@ -105,7 +157,7 @@ class UserCache extends AbstractEntityCache
     /**
      * @inheritDoc
      */
-    #[\Override] protected function getCacheKey(string $id): string
+    #[\Override] protected function getCacheKey(Uuid $id): string
     {
         return 'keycloak.user.by_id.' . $id;
     }
@@ -113,7 +165,7 @@ class UserCache extends AbstractEntityCache
     /**
      * @inheritDoc
      */
-    #[\Override] protected function fetchItems(string ...$ids): iterable
+    #[\Override] protected function fetchItems(Uuid ...$ids): iterable
     {
         return $this->api->fetchUsersByIds(...$ids);
     }
@@ -121,7 +173,7 @@ class UserCache extends AbstractEntityCache
     /**
      * @inheritDoc
      */
-    #[\Override] protected function unserializeObject(string $id, array $data): object
+    #[\Override] protected function unserializeObject(Uuid $id, array $data): object
     {
         return $this->userFactory->makeUserFromCacheData($data);
     }
@@ -129,7 +181,7 @@ class UserCache extends AbstractEntityCache
     /**
      * @inheritDoc
      */
-    #[\Override] protected function serializeObject(string $id, object $item): array
+    #[\Override] protected function serializeObject(Uuid $id, object $item): array
     {
         return $item->jsonSerialize();
     }

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{TITLE}}</title>
+    <script src="/frontend/hawk-auth-client.umd.js"></script>
+</head>
+<body>
+<h1>{{TITLE}} App</h1>
+<p>{{DESCRIPTION}}</p>
+<div id="app"></div>
+<hr>
+<a href="/">Back to index</a>
+<script>
+
+    /**
+     * Render the login screen
+     * @param {HTMLElement} container
+     * @param {HawkAuthClient} client
+     */
+    function renderLogin(container, client) {
+        container.innerHTML = '<button id="login">Login</button>';
+        container
+            .querySelector('#login')
+            .addEventListener('click', async (e) => {
+                e.preventDefault();
+                await client.login();
+            });
+    }
+
+    /**
+     * Render the authenticated page
+     * @param {HTMLElement} container
+     * @param {HawkAuthClient} client
+     * @param {Authentication} auth
+     * @returns {Promise<void>}
+     */
+    async function renderAuthenticatedPage(container, client, auth) {
+        const prettyJson = (data) => JSON.stringify(data, null, 2);
+
+        container.innerHTML = `
+<div>
+    <button id="logout">Logout</button>
+    <button id="refresh">Refresh Token</button>
+</div>
+<h3>Content from your api</h3>
+<div id="content">
+    <strong>Loading...</strong>
+</div>
+<h3>User info:</h3>
+<div>
+    <label>Token: <input type="text" readonly value="${auth.getToken()}"></label>
+    <pre>
+        ${prettyJson(await auth.getUser())}
+    </pre>
+</div>
+<h3>User profile:</h3>
+<div>
+    <pre>
+        ${prettyJson(await auth.getProfile())}
+    </pre>
+</div>
+<h3>Guarding resources</h3>
+<div>
+    <strong>READ demo-resource</strong>: ${(await auth.getGuard().hasAnyResourceScope('demo-resource', 'read')) ? 'GRANTED' : 'DENIED'}<br>
+    <strong>WRITE demo-resource</strong>: ${(await auth.getGuard().hasAnyResourceScope('demo-resource', 'write')) ? 'GRANTED' : 'DENIED'}<br>
+</div>
+`
+        container.querySelector('#logout').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await client.logout();
+        });
+
+        container.querySelector('#refresh').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await auth.refreshToken();
+            await renderAuthenticatedPage(container, client, auth);
+        });
+
+        // Using the auth's fetch method to make authenticated requests that already include the token
+        // Everything else works like the native fetch
+        const response = await auth.fetch('{{PAGE_URL}}/your-api');
+        const data = await response.json();
+        container.querySelector('#content').innerHTML = data.message;
+    }
+
+    (async function () {
+        const client = new HawkAuthClient({
+            // This endpoint must match the one you have configured in your backend
+            // If you omit this, the client will try to use the current page URL
+            endpointUrl: '{{PAGE_URL}}/auth-api'
+        });
+
+        // To detect changes in the authentication state, add event listeners
+        // those can also be used to integrate into your frontend framework
+        client.addEventListener('login', function () {
+            console.log('User was logged in');
+        });
+        client.addEventListener('logout', function () {
+            console.log('User logged out');
+        })
+
+        // This part is crucial and MUST be executed on every call that should be authenticated.
+        // It will also handle the oauth flow for the user login!
+        const auth = await client.getAuth();
+
+        // After passing the authentication, you can check if the user is authenticated and render the page accordingly
+        const container = document.getElementById('app');
+        if (!(await auth.isAuthenticated())) {
+            renderLogin(container, client);
+            return;
+        }
+
+        await renderAuthenticatedPage(container, client, auth);
+    })();
+</script>
+</body>
+</html>

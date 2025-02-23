@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Auth;
 
 use Hawk\AuthClient\Permissions\Guard;
 use Hawk\AuthClient\Permissions\GuardFactory;
+use Hawk\AuthClient\Request\RequestAdapterInterface;
 use Hawk\AuthClient\Users\UserStorage;
 use Hawk\AuthClient\Users\Value\User;
 use League\OAuth2\Client\Token\AccessToken;
@@ -15,6 +16,7 @@ use Psr\Log\LoggerInterface;
 
 class StatelessAuth
 {
+    protected RequestAdapterInterface $request;
     private UserStorage $userStorage;
     private GuardFactory $guardFactory;
     private AccessTokenInterface|null $token = null;
@@ -26,13 +28,15 @@ class StatelessAuth
         UserStorage      $userStorage,
         GuardFactory     $guardFactory,
         KeycloakProvider $provider,
-        LoggerInterface  $logger
+        LoggerInterface         $logger,
+        RequestAdapterInterface $request
     )
     {
         $this->userStorage = $userStorage;
         $this->guardFactory = $guardFactory;
         $this->provider = $provider;
         $this->logger = $logger;
+        $this->request = $request;
     }
 
     /**
@@ -40,7 +44,7 @@ class StatelessAuth
      * If the token is invalid or the user cannot be authenticated, the onUnauthorized callback is called.
      * If the user is authenticated, the onAuthorized callback is called.
      *
-     * @param string|AccessTokenInterface $token The token to authenticate the user with.
+     * @param string|AccessTokenInterface|null $token The token to authenticate the user with.
      * @param callable|null $onUnauthorized The callback to call if the user cannot be authenticated.
      *                                      Might return a value that is returned by the authenticate method.
      *
@@ -49,11 +53,18 @@ class StatelessAuth
      * @return mixed Depending on the hooks and state returns either the result of the executed hook or null.
      */
     public function authenticate(
-        string|AccessTokenInterface $token,
+        string|AccessTokenInterface|null $token = null,
         callable|null               $onUnauthorized = null,
         callable|null               $onAuthorized = null
     ): mixed
     {
+        if (empty($token)) {
+            $token = $this->request->getHeaderValue('Authorization');
+            if (is_string($token)) {
+                $token = str_replace('Bearer ', '', $token);
+            }
+        }
+
         if (empty($token)) {
             if ($onUnauthorized) {
                 return $onUnauthorized();
@@ -71,6 +82,7 @@ class StatelessAuth
         try {
             $this->user = $this->userStorage->getOneByToken($token, fn() => $this->provider->getResourceOwner($token));
         } catch (\Throwable $e) {
+            $this->token = null;
             $this->logger->info(
                 '[StatelessAuth] Failed to validate token',
                 [

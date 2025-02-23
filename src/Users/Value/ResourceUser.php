@@ -8,13 +8,14 @@ namespace Hawk\AuthClient\Users\Value;
 use Hawk\AuthClient\Groups\Value\GroupReferenceList;
 use Hawk\AuthClient\Resources\Value\ResourceScopes;
 use Hawk\AuthClient\Roles\Value\RoleReferenceList;
+use Hawk\AuthClient\Util\Uuid;
 
 class ResourceUser extends User
 {
     protected ResourceScopes $scopes;
 
     public function __construct(
-        string             $id,
+        Uuid $id,
         string             $username,
         UserClaims         $claims,
         RoleReferenceList  $roleReferenceList,

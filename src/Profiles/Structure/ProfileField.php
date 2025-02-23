@@ -6,15 +6,12 @@ namespace Hawk\AuthClient\Profiles\Structure;
 
 use Hawk\AuthClient\Profiles\Structure\Util\AbstractProfileElementData;
 use Hawk\AuthClient\Profiles\Structure\Util\AssocListBasedValue;
-use Hawk\AuthClient\Profiles\Structure\Util\ListBasedValue;
 use Hawk\AuthClient\Profiles\Structure\Util\ProfileFieldData;
 
 class ProfileField implements \Stringable, \JsonSerializable
 {
     protected string $fullName;
     protected string $name;
-    protected ListBasedValue $required;
-    protected ListBasedValue $permissions;
     protected AssocListBasedValue $validators;
     protected AbstractProfileElementData $data;
     protected AssocListBasedValue $annotations;
@@ -29,9 +26,7 @@ class ProfileField implements \Stringable, \JsonSerializable
         $this->name = $name;
         $this->data = $data;
         $this->annotations = new AssocListBasedValue($data, 'annotations');
-        $this->validators = new AssocListBasedValue($data, 'validations');
-        $this->permissions = new ListBasedValue($data, 'permissions');
-        $this->required = new ListBasedValue($data, 'required');
+        $this->validators = new AssocListBasedValue($data, 'validators');
     }
 
     /**
@@ -87,63 +82,21 @@ class ProfileField implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Checks if this field is required to be filled when editing the profile as user.
-     *
+     * Returns true if the field is required. This means that the field must be filled out by the user.
      * @return bool
      */
-    public function isRequiredForUser(): bool
+    public function isRequired(): bool
     {
-        return $this->required->checkIfInList('user', 'roles');
+        return $this->data->getAttr('required') ?? false;
     }
 
     /**
-     * Checks if this field is required to be filled when editing the profile as admin.
-     *
+     * Returns true if the field is read-only. This means that the field is not editable by the user.
      * @return bool
      */
-    public function isRequiredForAdmin(): bool
+    public function isReadOnly(): bool
     {
-        return $this->required->checkIfInList('admin', 'roles');
-    }
-
-    /**
-     * Checks if the user can view this field.
-     *
-     * @return bool
-     */
-    public function canUserView(): bool
-    {
-        return $this->permissions->checkIfInList('user', 'view');
-    }
-
-    /**
-     * Checks if the admin can view this field.
-     *
-     * @return bool
-     */
-    public function canAdminView(): bool
-    {
-        return $this->permissions->checkIfInList('admin', 'view');
-    }
-
-    /**
-     * Checks if the user can edit this field.
-     *
-     * @return bool
-     */
-    public function canUserEdit(): bool
-    {
-        return $this->permissions->checkIfInList('user', 'edit');
-    }
-
-    /**
-     * Checks if the admin can edit this field.
-     *
-     * @return bool
-     */
-    public function canAdminEdit(): bool
-    {
-        return $this->permissions->checkIfInList('admin', 'edit');
+        return $this->data->getAttr('readOnly') ?? false;
     }
 
     /**

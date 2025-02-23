@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Layers;
 
 use Hawk\AuthClient\Profiles\ProfileUpdater;
 use Hawk\AuthClient\Profiles\Structure\ProfileStructureBuilder;
+use Hawk\AuthClient\Profiles\Value\UserProfile;
 use Hawk\AuthClient\Users\Value\User;
 
 interface ProfileLayerInterface
@@ -72,8 +73,24 @@ interface ProfileLayerInterface
      * however existing profile instances are not updated. This means you should always use $user->getProfile() to get
      * the latest profile data.
      *
-     * @param User $user
+     * @param User $user The user for which to update the profile data.
+     * @param bool|null $asAdmin By default, (null|false), the profile is updated as the current user.
+     *                           If set to true, the profile is updated as the admin user.
+     *                           This determines the range of changeable and required fields.
      * @return ProfileUpdater
      */
-    public function update(User $user): ProfileUpdater;
+    public function update(User $user, bool|null $asAdmin = null): ProfileUpdater;
+
+    /**
+     * This method allows access to the profile of a user.
+     * But while {@see User::getProfile()} returns the profile data and structure AS THAT user, this method returns the
+     * profile structure AS AN ADMIN. This means, there might be different visible fields and required fields.
+     * This method is useful if you want to build a form for an admin user to edit the profile of another user.
+     *
+     * @param User $user
+     * @return UserProfile
+     * @see User::getProfile() to get the profile structure as the user.
+     * @see ProfileLayerInterface::update() also allows you to update the profile data as an admin user.
+     */
+    public function getOneAsAdmin(User $user): UserProfile;
 }

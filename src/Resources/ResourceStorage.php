@@ -13,7 +13,7 @@ use Hawk\AuthClient\Resources\Value\ResourceConstraints;
 use Hawk\AuthClient\Resources\Value\ResourceList;
 use Hawk\AuthClient\Users\UserStorage;
 use Hawk\AuthClient\Users\Value\User;
-use Hawk\AuthClient\Util\Validator;
+use Hawk\AuthClient\Util\Uuid;
 
 class ResourceStorage implements ResourceLayerInterface
 {
@@ -63,7 +63,7 @@ class ResourceStorage implements ResourceLayerInterface
             $resource = $this->getOne((string)$identifier);
         }
 
-        if (!$resource && Validator::isUuid($identifier)) {
+        if (!$resource && Uuid::isValid($identifier)) {
             $name = 'not-named-resource-' . hash('sha256', $identifier);
         } else if ($identifier instanceof Resource) {
             $name = $identifier->getName();

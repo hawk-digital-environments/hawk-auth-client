@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Cache\Util;
 
 use Generator;
 use Hawk\AuthClient\Cache\CacheAdapterInterface;
+use Hawk\AuthClient\Util\Uuid;
 
 /**
  * @template T of object
@@ -26,33 +27,36 @@ abstract class AbstractEntityCache
      * Returns the items for the given ids. If an item is not found locally, it will be fetched.
      * Ids that do not resolve to an item will be ignored.
      *
-     * @param string ...$ids
+     * @param Uuid ...$ids
      * @return Generator<T>
      */
-    public function getAllByIds(string ...$ids): iterable
+    public function getAllByIds(Uuid ...$ids): iterable
     {
         $knownItems = [];
         $missingItemIds = [];
 
         foreach ($ids as $id) {
+            $idString = (string)$id;
             $item = $this->getOne($id, false);
             if ($item === null) {
                 $missingItemIds[] = $id;
             } else {
-                $knownItems[$id] = $item;
+                $knownItems[$idString] = $item;
             }
         }
 
         if (!empty($missingItemIds)) {
             foreach ($this->fetchItems(...$missingItemIds) as $id => $item) {
+                $idString = (string)$id;
                 $this->save($id, $item);
-                $knownItems[$id] = $item;
+                $knownItems[$idString] = $item;
             }
         }
 
         foreach ($ids as $id) {
-            if (isset($knownItems[$id])) {
-                yield $knownItems[$id];
+            $idString = (string)$id;
+            if (isset($knownItems[$idString])) {
+                yield $knownItems[$idString];
             }
         }
     }
@@ -61,16 +65,17 @@ abstract class AbstractEntityCache
      * Returns the item for the given id. If the item is not found locally, it will be fetched.
      * If the item does not exist, null will be returned.
      *
-     * @param string $id The id of the item
+     * @param Uuid $id The id of the item
      * @param bool $fetchMissing Whether to fetch the item if it is not found locally,
      *                           true by default (meaning the item will be fetched if it is not found),
      *                           false if the item should not be fetched if it is not found.
      * @return T|null
      */
-    public function getOne(string $id, bool $fetchMissing = true): object|null
+    public function getOne(Uuid $id, bool $fetchMissing = true): object|null
     {
-        if (array_key_exists($id, $this->resolved)) {
-            return $this->resolved[$id];
+        $idString = (string)$id;
+        if (array_key_exists($idString, $this->resolved)) {
+            return $this->resolved[$idString];
         }
 
         // @memo to self: no, you can NOT use CacheAdapterInterface::remember here, because of $fetchMissing!
@@ -84,7 +89,7 @@ abstract class AbstractEntityCache
             $items = iterator_to_array($this->fetchItems($id), false);
             if (empty($items)) {
                 // Item not found -> do not check again...
-                $this->resolved[$id] = null;
+                $this->resolved[$idString] = null;
                 $this->cache->set($cacheKey, false, $this->getCacheTtl($id));
                 return null;
             }
@@ -100,17 +105,17 @@ abstract class AbstractEntityCache
             return null;
         }
 
-        return $this->resolved[$id] = $this->unserializeObject($id, $cached);
+        return $this->resolved[$idString] = $this->unserializeObject($id, $cached);
     }
 
     /**
      * Saves the item in the cache and in the local resolved items.
-     * @param string $id
-     * @param T $item
+     * @param Uuid $id
+     * @param object $item
      */
-    public function save(string $id, object $item): void
+    public function save(Uuid $id, object $item): void
     {
-        $this->resolved[$id] = $item;
+        $this->resolved[(string)$id] = $item;
         $this->cache->set(
             $this->getCacheKey($id),
             $this->serializeObject($id, $item),
@@ -120,12 +125,12 @@ abstract class AbstractEntityCache
 
     /**
      * Removes the item from the cache and the local resolved items.
-     * @param string $id
+     * @param Uuid $id
      * @return void
      */
-    public function remove(string $id): void
+    public function remove(Uuid $id): void
     {
-        unset($this->resolved[$id]);
+        unset($this->resolved[(string)$id]);
         $this->cache->delete($this->getCacheKey($id));
     }
 
@@ -140,43 +145,43 @@ abstract class AbstractEntityCache
 
     /**
      * Returns the cache ttl for the given id.
-     * @param string $id The id of the item to get the ttl for
+     * @param Uuid $id The id of the item to get the ttl for
      * @return int|null The ttl in seconds, or null if the item should be cached indefinitely
      */
-    protected function getCacheTtl(string $id): int|null
+    protected function getCacheTtl(Uuid $id): int|null
     {
         return null;
     }
 
     /**
      * Used to calculate the cache key for the given id. The key should be unique for each id.
-     * @param string $id
+     * @param Uuid $id
      * @return string
      */
-    abstract protected function getCacheKey(string $id): string;
+    abstract protected function getCacheKey(Uuid $id): string;
 
     /**
      * Fetches the items for the given ids. The keys of the returned array should be the ids of the items.
      * The cache does not care how the items are resolved, it iterates them all and saves them.
      *
-     * @param string ...$ids
-     * @return iterable<string, T>
+     * @param Uuid ...$ids
+     * @return iterable<Uuid, T>
      */
-    abstract protected function fetchItems(string ...$ids): iterable;
+    abstract protected function fetchItems(Uuid ...$ids): iterable;
 
     /**
      * Executed when an item has been stored in cache and must now be unserialized.
-     * @param string $id The id of the item
+     * @param Uuid $id The id of the item
      * @param array $data The serialized data
      * @return T
      */
-    abstract protected function unserializeObject(string $id, array $data): object;
+    abstract protected function unserializeObject(Uuid $id, array $data): object;
 
     /**
      * Executed when an item must be stored in cache and must now be serialized.
-     * @param string $id The id of the item
+     * @param Uuid $id The id of the item
      * @param T $item The item to serialize
      * @return array
      */
-    abstract protected function serializeObject(string $id, object $item): array;
+    abstract protected function serializeObject(Uuid $id, object $item): array;
 }

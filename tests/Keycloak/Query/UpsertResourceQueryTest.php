@@ -10,6 +10,7 @@ use Hawk\AuthClient\Exception\ResourceAlreadyExistsException;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\UpsertResourceQuery;
 use Hawk\AuthClient\Resources\Value\ResourceBuilder;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(UpsertResourceQuery::class)]
@@ -69,7 +70,7 @@ class UpsertResourceQueryTest extends KeycloakQueryTestCase
     {
         $builder = $this->createStub(ResourceBuilder::class);
         $builder->method('doesUpdateExistingResource')->willReturn(true);
-        $builder->method('getId')->willReturn('resource-id');
+        $builder->method('getId')->willReturn(new DummyUuid());
         $builder->method('jsonSerialize')->willReturn(['name' => 'test']);
 
         $this->client->method('request')

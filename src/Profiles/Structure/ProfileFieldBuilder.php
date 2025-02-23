@@ -6,6 +6,7 @@ namespace Hawk\AuthClient\Profiles\Structure;
 
 
 use Hawk\AuthClient\Exception\GroupDoesNotExistException;
+use Hawk\AuthClient\Profiles\Structure\Util\ListBasedValue;
 use Hawk\AuthClient\Profiles\Structure\Util\ProfileFieldData;
 
 class ProfileFieldBuilder extends ProfileField
@@ -13,6 +14,8 @@ class ProfileFieldBuilder extends ProfileField
     protected const int MAX_NUMBER = 9999999;
 
     protected ProfileStructureBuilder $structure;
+    protected ListBasedValue $required;
+    protected ListBasedValue $permissions;
 
     public function __construct(
         string                  $fullName,
@@ -23,6 +26,8 @@ class ProfileFieldBuilder extends ProfileField
     {
         parent::__construct($fullName, $name, $data);
         $this->structure = $structure;
+        $this->permissions = new ListBasedValue($data, 'permissions');
+        $this->required = new ListBasedValue($data, 'required');
     }
 
     /**
@@ -75,6 +80,16 @@ class ProfileFieldBuilder extends ProfileField
     }
 
     /**
+     * Checks if this field is required to be filled when editing the profile as user.
+     *
+     * @return bool
+     */
+    public function isRequiredForUser(): bool
+    {
+        return $this->required->checkIfInList('user', 'roles');
+    }
+
+    /**
      * Sets this field to be required to be filled when editing the profile as user.
      * @param bool $state
      * @return $this
@@ -83,6 +98,16 @@ class ProfileFieldBuilder extends ProfileField
     {
         $this->required->toggleInList($state, 'user', 'roles');
         return $this;
+    }
+
+    /**
+     * Checks if this field is required to be filled when editing the profile as admin.
+     *
+     * @return bool
+     */
+    public function isRequiredForAdmin(): bool
+    {
+        return $this->required->checkIfInList('admin', 'roles');
     }
 
     /**
@@ -97,6 +122,26 @@ class ProfileFieldBuilder extends ProfileField
     }
 
     /**
+     * Returns true if the field is required for either the user or the admin.
+     * @see isRequiredForUser() To check if the field is required for the user.
+     * @see isRequiredForAdmin() To check if the field is required for the admin.
+     */
+    #[\Override] public function isRequired(): bool
+    {
+        return $this->isRequiredForUser() || $this->isRequiredForAdmin();
+    }
+
+    /**
+     * Checks if the user can view this field.
+     *
+     * @return bool
+     */
+    public function userCanView(): bool
+    {
+        return $this->permissions->checkIfInList('user', 'view');
+    }
+
+    /**
      * Sets the user to be able to view this field.
      * @param bool $state
      * @return $this
@@ -105,6 +150,16 @@ class ProfileFieldBuilder extends ProfileField
     {
         $this->permissions->toggleInList($state, 'user', 'view');
         return $this;
+    }
+
+    /**
+     * Checks if the admin can view this field.
+     *
+     * @return bool
+     */
+    public function adminCanView(): bool
+    {
+        return $this->permissions->checkIfInList('admin', 'view');
     }
 
     /**
@@ -119,6 +174,16 @@ class ProfileFieldBuilder extends ProfileField
     }
 
     /**
+     * Checks if the user can edit this field.
+     *
+     * @return bool
+     */
+    public function userCanEdit(): bool
+    {
+        return $this->permissions->checkIfInList('user', 'edit');
+    }
+
+    /**
      * Sets the user to be able to edit this field.
      * @param bool $state
      * @return $this
@@ -130,6 +195,16 @@ class ProfileFieldBuilder extends ProfileField
     }
 
     /**
+     * Checks if the admin can edit this field.
+     *
+     * @return bool
+     */
+    public function adminCanEdit(): bool
+    {
+        return $this->permissions->checkIfInList('admin', 'edit');
+    }
+
+    /**
      * Sets the admin to be able to edit this field.
      * @param bool $state
      * @return $this
@@ -138,6 +213,15 @@ class ProfileFieldBuilder extends ProfileField
     {
         $this->permissions->toggleInList($state, 'admin', 'edit');
         return $this;
+    }
+
+    /**
+     * Checks if the field is read-only. This means that the field is not editable by the user or admin.
+     * @return bool
+     */
+    #[\Override] public function isReadOnly(): bool
+    {
+        return !$this->userCanEdit() && !$this->adminCanEdit();
     }
 
     /**

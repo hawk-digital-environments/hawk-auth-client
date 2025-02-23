@@ -9,6 +9,7 @@ use Hawk\AuthClient\Exception\UserToGuardNotFoundException;
 use Hawk\AuthClient\Permissions\Guard;
 use Hawk\AuthClient\Permissions\GuardFactory;
 use Hawk\AuthClient\Permissions\PermissionStorage;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use Hawk\AuthClient\Users\UserStorage;
 use Hawk\AuthClient\Users\Value\User;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -33,7 +34,7 @@ class GuardFactoryTest extends TestCase
 
     public function testItCanCreateAGuardWithAUserId(): void
     {
-        $userId = '83335934-fc49-4c59-8199-de47c3d03ac5';
+        $userId = new DummyUuid();
         $user = $this->createStub(User::class);
         $userStorage = $this->createMock(UserStorage::class);
         $userStorage->expects($this->once())->method('getOne')->with($userId)->willReturn($user);
@@ -44,7 +45,7 @@ class GuardFactoryTest extends TestCase
 
     public function testItFailsToCreateAGuardWithAUserIdThatDoesNotBelongToAUser(): void
     {
-        $userId = '83335934-fc49-4c59-8199-de47c3d03ac5';
+        $userId = new DummyUuid();
         $userStorage = $this->createMock(UserStorage::class);
         $userStorage->expects($this->once())->method('getOne')->with($userId)->willReturn(null);
         $sut = new GuardFactory($this->createStub(PermissionStorage::class), $userStorage);

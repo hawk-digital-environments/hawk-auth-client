@@ -1,0 +1,13 @@
+{
+  "include": [
+    "src/**/*.ts"
+  ],
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": false,
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  }
+}

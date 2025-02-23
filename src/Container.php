@@ -16,6 +16,10 @@ use Hawk\AuthClient\Cache\FileCacheAdapter;
 use Hawk\AuthClient\Cache\Util\CacheBusterAwareCache;
 use Hawk\AuthClient\Cache\Util\ConnectionConfigAwareCache;
 use Hawk\AuthClient\Clock\SystemClock;
+use Hawk\AuthClient\FrontendApi\FrontendApi;
+use Hawk\AuthClient\FrontendApi\Util\HandlerContext;
+use Hawk\AuthClient\FrontendApi\Util\HandlerStack;
+use Hawk\AuthClient\FrontendApi\Util\ResponseFactory;
 use Hawk\AuthClient\Groups\GroupStorage;
 use Hawk\AuthClient\Keycloak\ApiTokenStorage;
 use Hawk\AuthClient\Keycloak\CacheBusterStorage;
@@ -222,7 +226,8 @@ class Container
             fn() => new UserCache(
                 $this->getCacheBusterAwareCache(),
                 $this->getUserFactory(),
-                $this->getKeycloakApiClient()
+                $this->getKeycloakApiClient(),
+                $this->getConnectionInfoStorage()
             )
         );
     }
@@ -330,7 +335,8 @@ class Container
                 $this->getUserStorage(),
                 $this->getGuardFactory(),
                 $this->getKeycloakOauthProvider(),
-                $this->getLogger()
+                $this->getLogger(),
+                $this->getRequest()
             ));
     }
 
@@ -382,6 +388,18 @@ class Container
     {
         return $this->makeSingleton(ResourceFactory::class,
             fn() => new ResourceFactory($this->getUserContext())
+        );
+    }
+
+    public function getFrontendApi(): FrontendApi
+    {
+        return $this->makeSingleton(FrontendApi::class,
+            fn() => new FrontendApi(
+                new HandlerContext($this),
+                $this->getRequest(),
+                new ResponseFactory($this->getCacheBusterStorage()),
+                new HandlerStack()
+            )
         );
     }
 

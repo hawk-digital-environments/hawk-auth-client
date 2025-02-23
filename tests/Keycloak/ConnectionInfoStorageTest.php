@@ -8,8 +8,9 @@ namespace Hawk\AuthClient\Tests\Keycloak;
 use Hawk\AuthClient\Cache\CacheAdapterInterface;
 use Hawk\AuthClient\Keycloak\ConnectionInfoStorage;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
-use Hawk\AuthClient\Keycloak\Value\ClientUuid;
 use Hawk\AuthClient\Keycloak\Value\ConnectionInfo;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -43,7 +44,8 @@ class ConnectionInfoStorageTest extends TestCase
             'foo123',
             'bar456',
             'baz789',
-            new ClientUuid('f47ac10b-58cc-4372-a567-0e02b2c3d001')
+            new Uuid(new DummyUuid(1)),
+            new Uuid(new DummyUuid(2))
         );
         $api = $this->createMock(KeycloakApiClient::class);
         $api->expects($this->once())->method('fetchConnectionInfo')->willReturn($info);

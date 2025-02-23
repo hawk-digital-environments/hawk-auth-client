@@ -22,6 +22,9 @@ abstract class AbstractChunkedList implements \IteratorAggregate
      */
     protected $itemStreamFactory;
 
+    protected int $offset = 0;
+    protected int $limit = 0;
+
     /**
      * @param callable(): iterable<string> $idStreamFactory
      * @param callable(string ...): iterable<T> $itemStreamFactory
@@ -41,8 +44,19 @@ abstract class AbstractChunkedList implements \IteratorAggregate
 
         $chunk = [];
         $i = 0;
+        $loadedItems = 0;
+        $returnedItems = 0;
         foreach ($this->getIdStream() as $userId) {
+            if ($loadedItems++ < $this->offset) {
+                continue;
+            }
+
             $chunk[] = $userId;
+
+            if ($this->limit > 0 && ++$returnedItems >= $this->limit) {
+                break;
+            }
+
             if ($i++ === $chunkSize - 1) {
                 yield from $this->fetchItems(...$chunk);
                 $chunk = [];
@@ -53,6 +67,30 @@ abstract class AbstractChunkedList implements \IteratorAggregate
         if ($chunk) {
             yield from $this->fetchItems(...$chunk);
         }
+    }
+
+    /**
+     * Sets the offset of the list.
+     * The offset is the number of items that are skipped before the first item is returned.
+     * @param int $offset
+     * @return $this
+     */
+    public function setOffset(int $offset): static
+    {
+        $this->offset = $offset;
+        return $this;
+    }
+
+    /**
+     * Sets the limit of the list.
+     * The limit is the maximum number of items that are returned.
+     * @param int $limit
+     * @return $this
+     */
+    public function setLimit(int $limit): static
+    {
+        $this->limit = $limit;
+        return $this;
     }
 
     /**
@@ -77,10 +115,10 @@ abstract class AbstractChunkedList implements \IteratorAggregate
      * MUST return an iterable of items that correspond to the given ids.
      * If an item does not lead to an entity, it MUST be ignored.
      *
-     * @param string ...$ids
+     * @param Uuid ...$ids
      * @return iterable<T>
      */
-    protected function fetchItems(string ...$ids): iterable
+    protected function fetchItems(Uuid ...$ids): iterable
     {
         return ($this->itemStreamFactory)(...$ids);
     }

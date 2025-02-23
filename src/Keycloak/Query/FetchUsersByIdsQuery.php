@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Keycloak\Query;
 
 use GuzzleHttp\ClientInterface;
 use Hawk\AuthClient\Users\UserFactory;
+use Hawk\AuthClient\Util\Uuid;
 
 class FetchUsersByIdsQuery
 {
@@ -15,7 +16,7 @@ class FetchUsersByIdsQuery
 
     public function __construct(
         UserFactory $userFactory,
-        string      ...$userIds
+        Uuid      ...$userIds
     )
     {
         $this->userFactory = $userFactory;

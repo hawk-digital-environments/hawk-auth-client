@@ -6,7 +6,7 @@ namespace Hawk\AuthClient\Roles\Value;
 
 
 use Hawk\AuthClient\Roles\RoleReferenceTypeEnum;
-use Hawk\AuthClient\Util\Validator;
+use Hawk\AuthClient\Util\Uuid;
 
 readonly class RoleReference implements \Stringable, \JsonSerializable
 {
@@ -23,7 +23,7 @@ readonly class RoleReference implements \Stringable, \JsonSerializable
      */
     public function getType(): RoleReferenceTypeEnum
     {
-        if (Validator::isUuid($this->value)) {
+        if (Uuid::isValid($this->value)) {
             return RoleReferenceTypeEnum::ID;
         }
 

@@ -8,6 +8,7 @@ namespace Hawk\AuthClient\Tests\Cache\Util\EntityCache;
 use Hawk\AuthClient\Cache\CacheAdapterInterface;
 use Hawk\AuthClient\Cache\NullCacheAdapter;
 use Hawk\AuthClient\Cache\Util\AbstractEntityCache;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\TestCase;
 
 abstract class EntityCacheTestCase extends TestCase
@@ -22,9 +23,9 @@ abstract class EntityCacheTestCase extends TestCase
     )
     {
         $cache ??= new NullCacheAdapter();
-        $getCacheKey ??= fn(string $id) => $id;
-        $fetchItems ??= fn(string ...$ids) => [];
-        $unserialize ??= fn(string $id, array $data) => unserialize($data['v']);
+        $getCacheKey ??= fn(Uuid $id) => (string)$id;
+        $fetchItems ??= fn(Uuid ...$ids) => [];
+        $unserialize ??= fn(Uuid $id, array $data) => unserialize($data['v']);
         $serialize ??= fn($id, $data) => ['v' => serialize($data)];
 
         return new class($cache, $getCacheKey, $fetchItems, $unserialize, $serialize, $getCacheTtl) extends AbstractEntityCache {
@@ -67,7 +68,7 @@ abstract class EntityCacheTestCase extends TestCase
                 $this->getCacheTtl = $getCacheTtl;
             }
 
-            protected function getCacheTtl(string $id): int|null
+            protected function getCacheTtl(Uuid $id): int|null
             {
                 if ($this->getCacheTtl === null) {
                     return parent::getCacheTtl($id);
@@ -75,22 +76,22 @@ abstract class EntityCacheTestCase extends TestCase
                 return ($this->getCacheTtl)($id);
             }
 
-            protected function getCacheKey(string $id): string
+            protected function getCacheKey(Uuid $id): string
             {
                 return ($this->getCacheKey)($id);
             }
 
-            protected function fetchItems(string ...$ids): array
+            protected function fetchItems(Uuid ...$ids): iterable
             {
                 return ($this->fetchItems)(...$ids);
             }
 
-            protected function unserializeObject(string $id, array $data): object
+            protected function unserializeObject(Uuid $id, array $data): object
             {
                 return ($this->unserialize)($id, $data);
             }
 
-            protected function serializeObject(string $id, object $item): array
+            protected function serializeObject(Uuid $id, object $item): array
             {
                 return ($this->serialize)($id, $item);
             }

@@ -45,7 +45,7 @@ class ProfileStructure implements \JsonSerializable
     /**
      * Returns a list of {@see ProfileGroup} objects of all groups known to the structure.
      *
-     * @param false|string|\Stringable|null $clientId Allows you to filter the groups by client id.
+     * @param bool|string|\Stringable|null $clientId Allows you to filter the groups by client id.
      *                                                default (null) returns all groups explicitly defined for this client (e.g. hawk.client-id.group-name)
      *                                                false returns all "global" groups (e.g. group-name, user-metadata)
      *                                                string|\Stringable returns all groups for the given client id
@@ -60,6 +60,20 @@ class ProfileStructure implements \JsonSerializable
             $this->groups,
             [$this, 'makeGroupObject']
         );
+    }
+
+    /**
+     * The same as {@see getGroups()}, but also includes the "global" groups.
+     * @param string|\Stringable|null $clientId Allows you to filter the groups by client id.
+     *                                          default (null) returns all groups explicitly defined for this client (e.g. hawk.client-id.group-name)
+     *                                          string|\Stringable returns all groups for the given client id
+     * @return iterable<ProfileGroup>
+     * @see ProfileLayerInterface::define() to learn more on how the client namespacing is used in the structure
+     */
+    public function getGroupsWithGlobals(null|string|\Stringable $clientId = null): iterable
+    {
+        yield from $this->getGroups(false);
+        yield from $this->getGroups($clientId);
     }
 
     /**
@@ -97,26 +111,47 @@ class ProfileStructure implements \JsonSerializable
     /**
      * Returns a list of {@see ProfileField} objects of all fields known to the structure.
      *
-     * @param false|string|\Stringable|null $clientId Allows you to filter the fields by client id.
+     * @param bool|string|\Stringable|null $clientId Allows you to filter the fields by client id.
      *                                                default (null) returns all fields explicitly defined for this client (e.g. hawk.client-id.field-name)
      *                                                false returns all "global" fields (e.g. username, email, firstName)
      *                                                string|\Stringable returns all fields for the given client id
      *                                                true returns ALL fields, regardless of client id
-     * @param string|\Stringable|null $group Allows you to filter the fields by group.
+     * @param false|string|\Stringable|null $group Allows you to filter the fields by group.
+     *                                       default(null) returns all fields regardless of group
+     *                                       string|\Stringable returns all fields for the given group
+     *                                       false returns all fields that are not in a group
      * @return iterable<ProfileField>
      * @see ProfileLayerInterface::define() to learn more on how the client namespacing is used in the structure
      */
-    public function getFields(bool|null|string|\Stringable $clientId = null, string|\Stringable|null $group = null): iterable
+    public function getFields(bool|null|string|\Stringable $clientId = null, false|string|\Stringable|null $group = null): iterable
     {
         yield from $this->mapListToObjects(
             $this->data->getFields(
                 $this->config,
                 $clientId,
-                $group === null ? null : $this->getFullName($group, $clientId)
+                $group
             ),
             $this->fields,
             [$this, 'makeFieldObject']
         );
+    }
+
+    /**
+     * The same as {@see getFields()}, but also includes the "global" fields.
+     * @param string|\Stringable|null $clientId Allows you to filter the fields by client id.
+     *                                          default (null) returns all fields explicitly defined for this client (e.g. hawk.client-id.field-name)
+     *                                          string|\Stringable returns all fields for the given client id
+     * @param false|string|\Stringable|null $group Allows you to filter the fields by group.
+     *                                             default(null) returns all fields regardless of group
+     *                                             string|\Stringable returns all fields for the given group
+     *                                             false returns all fields that are not in a group
+     * @return iterable<ProfileField>
+     * @see ProfileLayerInterface::define() to learn more on how the client namespacing is used in the structure
+     */
+    public function getFieldsWithGlobals(null|string|\Stringable $clientId = null, false|string|\Stringable|null $group = null): iterable
+    {
+        yield from $this->getFields(false, $group);
+        yield from $this->getFields($clientId, $group);
     }
 
     /**

@@ -51,24 +51,10 @@ class ProfileFieldTest extends TestCase
                 'customAttribute' => 'customValue',
                 'group' => 'my-group',
                 'multivalued' => true,
-                'required' => [
-                    'roles' => [
-                        'user',
-                        'admin'
-                    ]
-                ],
-                'permissions' => [
-                    'view' => [
-                        'user',
-                        'admin'
-                    ],
-                    'edit' => [
-                        'user',
-                        'admin'
-                    ]
-                ],
+                'required' => true,
+                'readOnly' => false,
                 'annotations' => $annotations,
-                'validations' => $validations
+                'validators' => $validations
             ]);
         $fieldData = new ProfileFieldData($data, 'baseKey');
         $sut = new ProfileField('fullName', 'name', $fieldData);
@@ -78,12 +64,8 @@ class ProfileFieldTest extends TestCase
         $this->assertEquals('displayName', $sut->getDisplayName());
         $this->assertEquals('my-group', $sut->getGroup());
         $this->assertTrue($sut->isMultivalued());
-        $this->assertTrue($sut->isRequiredForUser());
-        $this->assertTrue($sut->isRequiredForAdmin());
-        $this->assertTrue($sut->canUserView());
-        $this->assertTrue($sut->canAdminView());
-        $this->assertTrue($sut->canUserEdit());
-        $this->assertTrue($sut->canAdminEdit());
+        $this->assertTrue($sut->isRequired());
+        $this->assertFalse($sut->isReadOnly());
         $this->assertEquals(FieldInputTypes::TEXTAREA->value, $sut->getInputType());
         $this->assertEquals('before', $sut->getHelperTextBefore());
         $this->assertEquals('after', $sut->getHelperTextAfter());

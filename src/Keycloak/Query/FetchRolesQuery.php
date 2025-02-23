@@ -8,6 +8,7 @@ namespace Hawk\AuthClient\Keycloak\Query;
 use GuzzleHttp\ClientInterface;
 use Hawk\AuthClient\Roles\Value\Role;
 use Hawk\AuthClient\Roles\Value\RoleList;
+use Hawk\AuthClient\Util\Uuid;
 
 class FetchRolesQuery
 {
@@ -29,7 +30,7 @@ class FetchRolesQuery
         $roles = [];
         foreach ($data as $role) {
             $roles[] = new Role(
-                $role['id'],
+                new Uuid($role['id']),
                 $role['name'],
                 (bool)$role['clientRole'],
                 empty($role['description']) ? null : $role['description'],

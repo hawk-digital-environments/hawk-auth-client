@@ -8,6 +8,7 @@ namespace Hawk\AuthClient\Tests\Roles\Value;
 use Hawk\AuthClient\Roles\Value\Role;
 use Hawk\AuthClient\Roles\Value\RoleReference;
 use Hawk\AuthClient\Roles\Value\RoleReferenceList;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -25,27 +26,29 @@ class RoleReferenceListTest extends TestCase
     {
         yield 'nothing' => [[], false];
         yield 'one string' => [['foo'], true];
-        yield 'one uuid' => [['f47ac10b-58cc-4372-a567-0e02b2c3d001'], true];
+        yield 'one uuid string' => [[(string)new DummyUuid(1)], true];
+        yield 'one uuid' => [[new DummyUuid(1)], true];
         yield 'one RoleReference' => [[new RoleReference('foo')], true];
-        yield 'one RoleReference uuid' => [[new RoleReference('f47ac10b-58cc-4372-a567-0e02b2c3d001')], true];
+        yield 'one RoleReference uuid' => [[new RoleReference((string)new DummyUuid(1))], true];
         yield 'multiple RoleReferences' => [[new RoleReference('foo'), new RoleReference('bar')], true];
-        yield 'one Role' => [[new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', [])], true];
+        yield 'one Role' => [[new Role(new DummyUuid(1), 'foo', false, 'desc', [])], true];
         yield 'multiple Roles' => [[
-            new Role('f47ac10b-58cc-4372-a567-0e02b2c3d002', 'bar', false, 'desc', []),
-            new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', [])
+            new Role(new DummyUuid(2), 'bar', false, 'desc', []),
+            new Role(new DummyUuid(1), 'foo', false, 'desc', [])
         ], true];
         yield 'missing string' => [['bar'], false];
-        yield 'missing uuid' => [['f47ac10b-58cc-4372-a567-0e02b2c3d002'], false];
+        yield 'missing uuid string' => [[(string)new DummyUuid(2)], false];
+        yield 'missing uuid' => [[new DummyUuid(2)], false];
         yield 'missing RoleReference' => [[new RoleReference('bar')], false];
-        yield 'missing RoleReference uuid' => [[new RoleReference('f47ac10b-58cc-4372-a567-0e02b2c3d002')], false];
+        yield 'missing RoleReference uuid' => [[new RoleReference((string)new DummyUuid(2))], false];
         yield 'missing multiple RoleReferences' => [[new RoleReference('faz'), new RoleReference('baz')], false];
         yield 'mixed' => [[
             'foo',
             new RoleReference('bar'),
-            new Role('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'foo', false, 'desc', []),
-            new Role('f47ac10b-58cc-4372-a567-0e02b2c3d002', 'bar', false, 'desc', [])
+            new Role(new DummyUuid(1), 'foo', false, 'desc', []),
+            new Role(new DummyUuid(2), 'bar', false, 'desc', [])
         ], true];
-        yield 'role by id' => [[new Role('f47ac10b-58cc-4372-a567-0e02b2c3d003', 'fratz', false, 'desc', [])], true];
+        yield 'role by id' => [[new Role(new DummyUuid(3), 'fratz', false, 'desc', [])], true];
     }
 
     #[DataProvider('provideTestItCanCheckIfItHasAnyData')]
@@ -53,8 +56,8 @@ class RoleReferenceListTest extends TestCase
     {
         $sut = new RoleReferenceList(
             new RoleReference('foo'),
-            new RoleReference('f47ac10b-58cc-4372-a567-0e02b2c3d001'),
-            new RoleReference('f47ac10b-58cc-4372-a567-0e02b2c3d003'),
+            new RoleReference((string)new DummyUuid(1)),
+            new RoleReference((string)new DummyUuid(3)),
         );
 
         $this->assertEquals($expected, $sut->hasAny(...$roles));

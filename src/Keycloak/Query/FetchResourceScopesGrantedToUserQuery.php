@@ -29,13 +29,13 @@ class FetchResourceScopesGrantedToUserQuery
             [
                 'json' => [
                     'roleIds' => [],
-                    'userId' => $this->user->getId(),
+                    'userId' => (string)$this->user->getId(),
                     'entitlements' => true,
                     'context' => [
                         'attributes' => (object)[]
                     ],
                     'resources' => [[
-                        '_id' => $this->resource->getId()
+                        '_id' => (string)$this->resource->getId()
                     ]]
                 ]
             ]

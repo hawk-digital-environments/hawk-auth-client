@@ -1,0 +1,16 @@
+{
+  "name": "hawk-hhg/auth-client-examples",
+  "description": "A simple app that shows how to integrate your own app with the keycloak infrastructure",
+  "type": "project",
+  "license": "Apache-2.0",
+  "minimum-stability": "dev",
+  "repositories": [
+    {
+      "type": "path",
+      "url": "/var/www/html-composer/**"
+    }
+  ],
+  "require": {
+    "hawk-hhg/auth-client": "*"
+  }
+}

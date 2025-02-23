@@ -11,6 +11,7 @@ use Hawk\AuthClient\Auth\StatelessAuth;
 use Hawk\AuthClient\AuthClient;
 use Hawk\AuthClient\Cache\CacheAdapterInterface;
 use Hawk\AuthClient\Container;
+use Hawk\AuthClient\FrontendApi\FrontendApi;
 use Hawk\AuthClient\Groups\GroupStorage;
 use Hawk\AuthClient\Keycloak\Value\ConnectionConfig;
 use Hawk\AuthClient\Permissions\GuardFactory;
@@ -153,6 +154,7 @@ class AuthClientTest extends TestCase
         $roleLayer = $this->createStub(RoleStorage::class);
         $profileLayer = $this->createStub(ProfileLayer::class);
         $resourceLayer = $this->createStub(ResourceStorage::class);
+        $frontendApi = $this->createStub(FrontendApi::class);
 
         $containerMock = $this->createMock(Container::class);
         $containerMock->expects($this->once())
@@ -182,6 +184,9 @@ class AuthClientTest extends TestCase
         $containerMock->expects($this->once())
             ->method('getResourceStorage')
             ->willReturn($resourceLayer);
+        $containerMock->expects($this->once())
+            ->method('getFrontendApi')
+            ->willReturn($frontendApi);
 
         $sut = new AuthClient(...self::DEFAULT_CONFIG, containerFactory: fn() => $containerMock);
 
@@ -194,5 +199,6 @@ class AuthClientTest extends TestCase
         $this->assertSame($roleLayer, $sut->roles());
         $this->assertSame($profileLayer, $sut->profile());
         $this->assertSame($resourceLayer, $sut->resources());
+        $this->assertSame($frontendApi, $sut->frontendApi());
     }
 }

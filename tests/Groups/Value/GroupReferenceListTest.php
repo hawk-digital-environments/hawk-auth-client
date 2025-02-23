@@ -9,6 +9,7 @@ use Hawk\AuthClient\Groups\Value\Group;
 use Hawk\AuthClient\Groups\Value\GroupList;
 use Hawk\AuthClient\Groups\Value\GroupReference;
 use Hawk\AuthClient\Groups\Value\GroupReferenceList;
+use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -49,19 +50,20 @@ class GroupReferenceListTest extends TestCase
         yield 'hasAny, fuzzy path compare, found' => ['hasAny', ['faz'], true];
         yield 'hasAny, one string, found' => ['hasAny', ['foo'], true];
         yield 'hasAny, one string, not found' => ['hasAny', ['raz'], false];
-        yield 'hasAny, one uuid, found' => ['hasAny', ['f47ac10b-58cc-4372-a567-0e02b2c3d001'], true];
+        yield 'hasAny, one uuid string, found' => ['hasAny', [(string)new DummyUuid(1)], true];
+        yield 'hasAny, one uuid, found' => ['hasAny', [new DummyUuid(1)], true];
         yield 'hasAny, GroupReference, found' => ['hasAny', [new GroupReference('foo')], true];
         yield 'hasAny, GroupReference, not found' => ['hasAny', [new GroupReference('raz')], false];
-        yield 'hasAny, Group, found' => ['hasAny', [new Group('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'name', '/name', new GroupList())], true];
-        yield 'hasAny, Group, not found' => ['hasAny', [new Group('f47ac10b-58cc-4372-a567-0e02b2c3d003', 'name', '/name', new GroupList())], false];
-        yield 'hasAny, multiple, all found' => ['hasAny', ['foo', new GroupReference('baz'), new Group('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'name', '/name', new GroupList())], true];
-        yield 'hasAny, multiple, only one found' => ['hasAny', ['/raz', new GroupReference('baz'), new Group('f47ac10b-58cc-4372-a567-0e02b2c3d002', 'name', '/name', new GroupList())], true];
+        yield 'hasAny, Group, found' => ['hasAny', [new Group(new DummyUuid(1), 'name', '/name', new GroupList())], true];
+        yield 'hasAny, Group, not found' => ['hasAny', [new Group(new DummyUuid(3), 'name', '/name', new GroupList())], false];
+        yield 'hasAny, multiple, all found' => ['hasAny', ['foo', new GroupReference('baz'), new Group(new DummyUuid(1), 'name', '/name', new GroupList())], true];
+        yield 'hasAny, multiple, only one found' => ['hasAny', ['/raz', new GroupReference('baz'), new Group(new DummyUuid(2), 'name', '/name', new GroupList())], true];
         yield 'hasAnyOrHasChildOfAny, parent path, found' => ['hasAnyOrHasChildOfAny', ['/baz'], true];
         yield 'hasAnyOrHasChildOfAny, parent path, not found' => ['hasAnyOrHasChildOfAny', ['/raz/bar'], false];
         yield 'hasAnyOrHasChildOfAny, exact path, found' => ['hasAnyOrHasChildOfAny', ['/baz'], true];
-        yield 'hasAny, group exact path match, found' => ['hasAny', [new Group('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'name', '/faz', new GroupList())], true];
+        yield 'hasAny, group exact path match, found' => ['hasAny', [new Group(new DummyUuid(1), 'name', '/faz', new GroupList())], true];
         yield 'hasAnyOrHasChildOfAny, parent path match, found' => ['hasAnyOrHasChildOfAny', ['/baz'], true];
-        yield 'hasAny, group name match, found' => ['hasAny', [new Group('f47ac10b-58cc-4372-a567-0e02b2c3d001', 'bar', '/name', new GroupList())], true];
+        yield 'hasAny, group name match, found' => ['hasAny', [new Group(new DummyUuid(1), 'bar', '/name', new GroupList())], true];
     }
 
     #[DataProvider('provideTestItCanCheckIfItHasAnyData')]
@@ -71,8 +73,8 @@ class GroupReferenceListTest extends TestCase
         $ref2 = new GroupReference('bar');
         $ref3 = new GroupReference('/baz/bar');
         $ref4 = new GroupReference('/faz');
-        $ref5 = new GroupReference('f47ac10b-58cc-4372-a567-0e02b2c3d001');
-        $ref6 = new GroupReference('f47ac10b-58cc-4372-a567-0e02b2c3d002');
+        $ref5 = new GroupReference((string)new DummyUuid(1));
+        $ref6 = new GroupReference((string)new DummyUuid(2));
 
         $sut = new GroupReferenceList($ref1, $ref2, $ref3, $ref4, $ref5, $ref6);
 
@@ -85,8 +87,8 @@ class GroupReferenceListTest extends TestCase
         $ref2 = new GroupReference('bar');
         $ref3 = new GroupReference('baz');
         $ref4 = new GroupReference('faz');
-        $ref5 = new GroupReference('f47ac10b-58cc-4372-a567-0e02b2c3d001');
-        $ref6 = new GroupReference('f47ac10b-58cc-4372-a567-0e02b2c3d002');
+        $ref5 = new GroupReference((string)new DummyUuid(1));
+        $ref6 = new GroupReference((string)new DummyUuid(2));
 
         $sut = new GroupReferenceList($ref1, $ref2, $ref3, $ref4, $ref5, $ref6);
 

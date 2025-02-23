@@ -5,23 +5,22 @@ declare(strict_types=1);
 namespace Hawk\AuthClient\Groups\Value;
 
 
-use Hawk\AuthClient\Util\Validator;
+use Hawk\AuthClient\Util\Uuid;
 
 readonly class Group implements \Stringable, \JsonSerializable
 {
-    private string $id;
+    private Uuid $id;
     private string $name;
     private string $path;
     private GroupList $children;
 
     public function __construct(
-        string    $id,
+        Uuid $id,
         string    $name,
         string    $path,
         GroupList $children
     )
     {
-        Validator::requireUuid($id);
         $this->id = $id;
         $this->name = $name;
         $this->path = $path;
@@ -30,9 +29,9 @@ readonly class Group implements \Stringable, \JsonSerializable
 
     /**
      * Returns the unique UUID of the group.
-     * @return string
+     * @return Uuid
      */
-    public function getId(): string
+    public function getId(): Uuid
     {
         return $this->id;
     }

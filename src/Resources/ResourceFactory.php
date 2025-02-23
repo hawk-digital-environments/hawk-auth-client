@@ -8,6 +8,7 @@ namespace Hawk\AuthClient\Resources;
 use Hawk\AuthClient\Resources\Value\Resource;
 use Hawk\AuthClient\Resources\Value\ResourceScopes;
 use Hawk\AuthClient\Users\Value\UserContext;
+use Hawk\AuthClient\Util\Uuid;
 
 class ResourceFactory
 {
@@ -23,10 +24,10 @@ class ResourceFactory
     public function makeResourceFromKeycloakData(array $data): Resource
     {
         return new Resource(
-            $data['_id'],
+            new Uuid($data['_id']),
             $data['name'],
             $data['displayName'] ?? null,
-            $data['owner']['id'] ?? '',
+            new Uuid($data['owner']['id']),
             (bool)$data['ownerManagedAccess'],
             $data['attributes'] ?? [],
             $data['icon_uri'] ?? '',
@@ -42,10 +43,10 @@ class ResourceFactory
     public function makeResourceFromCacheData(array $data): Resource
     {
         return new Resource(
-            $data['id'],
+            new Uuid($data['id']),
             $data['name'],
             $data['displayName'] ?? null,
-            $data['owner'],
+            new Uuid($data['owner']),
             $data['isUserManaged'],
             $data['attributes'],
             $data['iconUri'],

@@ -12,6 +12,7 @@ use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Resources\ResourceCache;
 use Hawk\AuthClient\Users\UserStorage;
 use Hawk\AuthClient\Users\Value\User;
+use Hawk\AuthClient\Util\Uuid;
 
 class ResourceBuilder extends Resource
 {
@@ -50,10 +51,10 @@ class ResourceBuilder extends Resource
                 throw new ResourceNameMissingWhenCreatingResourceBuilderException();
             }
             parent::__construct(
-                id: self::EMPTY_UUID,
+                id: new Uuid(self::EMPTY_UUID),
                 name: $name,
                 displayName: null,
-                ownerId: self::EMPTY_UUID,
+                ownerId: new Uuid(self::EMPTY_UUID),
                 isUserManaged: false,
                 attributes: null,
                 iconUri: null,
@@ -71,7 +72,7 @@ class ResourceBuilder extends Resource
     /**
      * @inheritDoc
      */
-    #[\Override] public function getId(): string
+    #[\Override] public function getId(): Uuid
     {
         if (!$this->updatesExistingResource) {
             throw new NoResourceIdAssignedException();
@@ -140,7 +141,7 @@ class ResourceBuilder extends Resource
      */
     #[\Override] public function getOwner(): User
     {
-        if ($this->ownerId === self::EMPTY_UUID) {
+        if ((string)$this->ownerId === self::EMPTY_UUID) {
             throw new NoResourceOwnerAssignedException();
         }
 

@@ -14,21 +14,23 @@ class FetchProfileDataQuery
 {
     protected User $user;
     protected ConnectionConfig $config;
+    protected bool $asAdminUser;
 
-    public function __construct(ConnectionConfig $config, User $user)
+    public function __construct(ConnectionConfig $config, User $user, $asAdminUser)
     {
         $this->config = $config;
         $this->user = $user;
+        $this->asAdminUser = $asAdminUser;
     }
 
     public function execute(ClientInterface $client): UserProfile
     {
         $response = $client->request(
             'GET',
-            'admin/realms/{realm}/users/' . $this->user->getId(),
+            'realms/{realm}/hawk/profile/' . $this->user->getId(),
             [
                 'query' => [
-                    'userProfileMetadata' => "true"
+                    'mode' => $this->asAdminUser ? 'admin' : 'user'
                 ]
             ]
         );

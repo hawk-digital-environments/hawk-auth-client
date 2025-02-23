@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Hawk\AuthClient\Keycloak\Value;
 
+use Hawk\AuthClient\Util\Uuid;
+
 /**
  * @internal This class is not part of the public API and may change at any time.
  */
@@ -12,19 +14,22 @@ readonly class ConnectionInfo implements \JsonSerializable
     protected string $keycloakVersion;
     protected string $extensionVersion;
     protected string $clientId;
-    protected ClientUuid $clientUuid;
+    protected Uuid $clientUuid;
+    protected Uuid $clientServiceAccountUuid;
 
     public function __construct(
-        string     $keycloakVersion,
-        string     $extensionVersion,
-        string     $clientId,
-        ClientUuid $clientUuid
+        string $keycloakVersion,
+        string $extensionVersion,
+        string $clientId,
+        Uuid   $clientUuid,
+        Uuid   $clientServiceAccountUuid
     )
     {
         $this->keycloakVersion = $keycloakVersion;
         $this->extensionVersion = $extensionVersion;
         $this->clientId = $clientId;
         $this->clientUuid = $clientUuid;
+        $this->clientServiceAccountUuid = $clientServiceAccountUuid;
     }
 
     /**
@@ -56,11 +61,21 @@ readonly class ConnectionInfo implements \JsonSerializable
 
     /**
      * Returns the uuid of this client. Sometimes needed for requests
-     * @return ClientUuid
+     * @return Uuid
      */
-    public function getClientUuid(): ClientUuid
+    public function getClientUuid(): Uuid
     {
         return $this->clientUuid;
+    }
+
+    /**
+     * Returns the uuid of the client's service account. Sometimes needed for requests.
+     * This uuid is basically an uuid of a user that represents the client itself.
+     * @return Uuid
+     */
+    public function getClientServiceAccountUuid(): Uuid
+    {
+        return $this->clientServiceAccountUuid;
     }
 
     public static function fromArray(array $data): self
@@ -69,7 +84,8 @@ readonly class ConnectionInfo implements \JsonSerializable
             $data['keycloakVersion'],
             $data['extensionVersion'],
             $data['clientId'],
-            new ClientUuid($data['clientUuid'])
+            new Uuid($data['clientUuid']),
+            new Uuid($data['clientServiceAccountUuid'])
         );
     }
 
@@ -82,7 +98,8 @@ readonly class ConnectionInfo implements \JsonSerializable
             'keycloakVersion' => $this->keycloakVersion,
             'extensionVersion' => $this->extensionVersion,
             'clientId' => $this->clientId,
-            'clientUuid' => (string)$this->clientUuid
+            'clientUuid' => (string)$this->clientUuid,
+            'clientServiceAccountUuid' => (string)$this->clientServiceAccountUuid
         ];
     }
 }

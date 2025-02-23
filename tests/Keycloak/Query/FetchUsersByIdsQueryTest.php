@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Tests\Keycloak\Query;
 use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\FetchUsersByIdsQuery;
 use Hawk\AuthClient\Users\Value\User;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(FetchUsersByIdsQuery::class)]
@@ -115,11 +116,11 @@ class FetchUsersByIdsQueryTest extends KeycloakQueryTestCase
             )->willReturn($this->createStreamResponse(self::RESPONSE));
 
         $user1 = $this->createStub(User::class);
-        $user1->method('getId')->willReturn('29301673-cdb5-4200-8590-211642973711');
+        $user1->method('getId')->willReturn(new Uuid('29301673-cdb5-4200-8590-211642973711'));
         $user2 = $this->createStub(User::class);
-        $user2->method('getId')->willReturn('40c3b030-4bbf-4764-85a5-4cd1f01f6be0');
+        $user2->method('getId')->willReturn(new Uuid('40c3b030-4bbf-4764-85a5-4cd1f01f6be0'));
         $user3 = $this->createStub(User::class);
-        $user3->method('getId')->willReturn('83bbff9e-1b5a-428b-a520-4ea7c57fe744');
+        $user3->method('getId')->willReturn(new Uuid('83bbff9e-1b5a-428b-a520-4ea7c57fe744'));
 
         $this->userFactory->expects($this->exactly(3))
             ->method('makeUserFromKeycloakData')
@@ -142,13 +143,16 @@ class FetchUsersByIdsQueryTest extends KeycloakQueryTestCase
             );
 
         $result = $this->api->fetchUsersByIds(
-            '29301673-cdb5-4200-8590-211642973711',
-            '40c3b030-4bbf-4764-85a5-4cd1f01f6be0',
-            '83bbff9e-1b5a-428b-a520-4ea7c57fe744'
+            new Uuid('29301673-cdb5-4200-8590-211642973711'),
+            new Uuid('40c3b030-4bbf-4764-85a5-4cd1f01f6be0'),
+            new Uuid('83bbff9e-1b5a-428b-a520-4ea7c57fe744')
         );
 
         /** @var User[] $users */
-        $users = iterator_to_array($result);
+        $users = [];
+        foreach ($result as $k => $u) {
+            $users[(string)$k] = $u;
+        }
 
         $this->assertCount(3, $users);
         $this->assertArrayHasKey('29301673-cdb5-4200-8590-211642973711', $users);

@@ -56,25 +56,6 @@ class ProfileStructureData implements \JsonSerializable
     }
 
     /**
-     * Returns the raw data of all fields in the structure.
-     * Can be filtered by client id and group.
-     *
-     * @param ConnectionConfig $config
-     * @param bool|string|Stringable|null $clientId
-     * @param string|Stringable|null $group
-     * @return iterable
-     */
-    public function getFields(ConnectionConfig $config, bool|null|string|\Stringable $clientId = null, string|\Stringable|null $group = null): iterable
-    {
-        return $this->findItemsOfList(
-            $this->data['attributes'],
-            $config,
-            $clientId,
-            static fn(array $item) => $group === null || ($item['group'] ?? null) === (string)$group
-        );
-    }
-
-    /**
      * Removes a field from the structure.
      *
      * If the field does not exist, nothing will happen.
@@ -86,6 +67,35 @@ class ProfileStructureData implements \JsonSerializable
     public function removeField(string $fullName): void
     {
         $this->setItemInList($this->data['attributes'], $fullName, null);
+    }
+
+    /**
+     * Returns the raw data of all fields in the structure.
+     * Can be filtered by client id and group.
+     *
+     * @param ConnectionConfig $config
+     * @param bool|string|Stringable|null $clientId
+     * @param false|string|Stringable|null $group
+     * @return iterable
+     */
+    public function getFields(ConnectionConfig $config, bool|null|string|\Stringable $clientId = null, false|string|\Stringable|null $group = null): iterable
+    {
+        return $this->findItemsOfList(
+            $this->data['attributes'],
+            $config,
+            $clientId,
+            static function (array $item) use ($group) {
+                if ($group === null) {
+                    return true;
+                }
+
+                if ($group === false) {
+                    return empty($item['group']);
+                }
+
+                return ($item['group'] ?? null) === (string)$group;
+            }
+        );
     }
 
     /**
