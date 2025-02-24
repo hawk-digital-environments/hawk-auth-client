@@ -12,21 +12,22 @@ use Hawk\AuthClient\Request\RequestAdapterInterface;
 use Hawk\AuthClient\Session\SessionAdapterInterface;
 use Hawk\AuthClient\Users\UserStorage;
 use Hawk\AuthClient\Users\Value\User;
+use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 use Psr\Log\LoggerInterface;
 
 class StatefulAuth
 {
-    private const string SESSION_KEY_OAUTH_STATE = 'oauth_state';
+    protected const string SESSION_KEY_OAUTH_STATE = 'oauth_state';
 
-    private RequestAdapterInterface $requestAdapter;
-    private StatefulUserTokenStorage $tokenStorage;
-    private SessionAdapterInterface $sessionAdapter;
-    private KeycloakProvider $provider;
-    private mixed $redirectHandler;
-    private UserStorage $userStorage;
-    private GuardFactory $guardFactory;
-    private LoggerInterface $logger;
+    protected RequestAdapterInterface $requestAdapter;
+    protected StatefulUserTokenStorage $tokenStorage;
+    protected SessionAdapterInterface $sessionAdapter;
+    protected KeycloakProvider $provider;
+    protected mixed $redirectHandler;
+    protected UserStorage $userStorage;
+    protected GuardFactory $guardFactory;
+    protected LoggerInterface $logger;
 
     public function __construct(
         RequestAdapterInterface  $requestAdapter,
@@ -43,8 +44,11 @@ class StatefulAuth
         $this->sessionAdapter = $sessionAdapter;
         $this->provider = $provider;
         $this->redirectHandler = static function (string $url) {
+            // @codeCoverageIgnoreStart
+            // This is a native PHP function, so we can't really test it.
             header('Location: ' . $url);
             exit;
+            // @codeCoverageIgnoreEnd
         };
         $this->userStorage = $userStorage;
         $this->guardFactory = $guardFactory;
@@ -241,7 +245,10 @@ class StatefulAuth
     public function getUser(): User|null
     {
         $token = $this->getToken();
-        if (!$token) {
+        // You would think a "not-null" check would be enough, here,
+        // but for some reason \League\OAuth2\Client\Provider\AbstractProvider::getResourceOwner, does not accept
+        // an AccessTokenInterface, but only an AccessToken. So we need to check for the correct type.
+        if (!$token instanceof AccessToken) {
             return null;
         }
 
