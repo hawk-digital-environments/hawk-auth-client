@@ -1,6 +1,6 @@
 {
   "name": "@hawk-hhg/auth-client",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A companion JS library that allows you to connect to your backend service with ease",
   "main": "./dist/hawk-auth-client.umd.js",
   "module": "./dist/hawk-auth-client.mjs",
