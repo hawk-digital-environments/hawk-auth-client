@@ -234,11 +234,12 @@ class ResourceBuilder extends Resource
      *
      * IMPORTANT: Scopes that do not exist in the Keycloak client, will be automatically registered!
      *
-     * @param string $scope
+     * @param string $scope The scope to add
+     * @param string ...$scopes Additional scopes to add
      * @return $this
      * @see addScope() to add a single scope
      */
-    public function addScope(string $scope): static
+    public function addScope(string $scope, string ...$scopes): static
     {
         if (!$this->scopes?->hasAny($scope)) {
             $this->dirty = true;
@@ -246,20 +247,31 @@ class ResourceBuilder extends Resource
                 ? new ResourceScopes($scope)
                 : new ResourceScopes(...[...$this->scopes, $scope]);
         }
+
+        if (!empty($scopes)) {
+            $this->addScope(...$scopes);
+        }
+
         return $this;
     }
 
     /**
      * Removes a single scope from the resource.
      * @param string $scope
+     * @param string ...$scopes
      * @return $this
      */
-    public function removeScope(string $scope): static
+    public function removeScope(string $scope, string ...$scopes): static
     {
         if ($this->scopes?->hasAny($scope)) {
             $this->dirty = true;
             $this->scopes = new ResourceScopes(...array_filter([...$this->scopes], static fn($s) => $s !== $scope));
         }
+
+        if (!empty($scopes)) {
+            $this->removeScope(...$scopes);
+        }
+
         return $this;
     }
 

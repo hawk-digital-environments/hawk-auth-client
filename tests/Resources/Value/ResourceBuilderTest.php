@@ -234,11 +234,18 @@ class ResourceBuilderTest extends TestCase
                  ] as $sut) {
             /** @var ResourceBuilder $sut */
             $this->assertEmpty($sut->getScopes());
+            // With single values
             $sut->addScope('scope1');
             $sut->addScope('scope2');
             $this->assertEquals(new ResourceScopes('scope1', 'scope2'), $sut->getScopes());
             $sut->removeScope('scope2');
             $this->assertEquals(new ResourceScopes('scope1'), $sut->getScopes());
+
+            // The same with multi values
+            $sut->addScope('scope2', 'scope3', 'scope4');
+            $this->assertEquals(new ResourceScopes('scope1', 'scope2', 'scope3', 'scope4'), $sut->getScopes());
+            $sut->removeScope('scope2', 'scope4');
+            $this->assertEquals(new ResourceScopes('scope1', 'scope3'), $sut->getScopes());
             $sut->save();
             $sut->addScope('scope1');
             $sut->removeScope('scope2');
