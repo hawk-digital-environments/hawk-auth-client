@@ -92,6 +92,7 @@ async function handleLoginCallback(context: AuthClientContext) {
 
     if (urlParams.get('state') !== storedState) {
         context.dispatchError('login-state-mismatch', 'State mismatch, either not our request or CSRF attack; ignoring');
+        storage.clear();
         return;
     }
 

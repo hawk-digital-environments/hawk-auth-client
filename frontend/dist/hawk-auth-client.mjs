@@ -64,7 +64,7 @@ function g(t, e, r) {
   return t.status === 404 && e.dispatchError("missing-optional-feature", `The feature "${r}" is not enabled in your api.`), t;
 }
 function A(t, e) {
-  const r = (e == null ? void 0 : e.errorHandler) ?? ((s, i) => console.error("Auth Client error:", s, i)), n = (s, i) => {
+  const r = e.errorHandler ?? ((s, i) => console.error("Auth Client error:", s, i)), n = (s, i) => {
     new CustomEvent("error", {
       detail: {
         error: s,
@@ -75,10 +75,10 @@ function A(t, e) {
   }, a = L();
   return {
     get currentUrl() {
-      return new URL((e == null ? void 0 : e.currentUrl) || window.location.href);
+      return new URL(e.currentUrl || window.location.href);
     },
     get endpointUrl() {
-      return new URL((e == null ? void 0 : e.endpointUrl) || this.currentUrl.href);
+      return new URL(e.endpointUrl || this.currentUrl.href);
     },
     dispatchEvent: (s, i) => {
       t.dispatchEvent(
@@ -112,7 +112,7 @@ async function v(t, e) {
   const r = await c(e);
   return !r || !r.token || !r.expires || !r.idToken ? (t.dispatchError("invalid-token-response", "Failed to refresh token"), U(t), !1) : (t.storage.set("token", r.token), t.storage.set("token-expires", r.expires), t.storage.set("refresh-token", r.refreshToken), t.storage.set("id-token", r.idToken), t.dispatchEvent("auth-state-changed"), !0);
 }
-function w(t) {
+function p(t) {
   const e = () => {
     const o = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     return o.charAt(Math.floor(Math.random() * o.length));
@@ -136,7 +136,7 @@ async function O(t) {
   const e = await R(t);
   return T(e);
 }
-async function y(t) {
+async function w(t) {
   const e = await c(
     g(
       await d(t, "user-info", {}),
@@ -262,20 +262,21 @@ class H {
     );
   }
 }
-function p(t) {
+function y(t) {
   const e = t.get("token-expires");
   return e === null ? !0 : Date.now() > parseInt(e, 10) * 1e4;
 }
-async function N(t, e, r) {
-  const n = await c(
+async function N(t, e, r, n) {
+  const a = await c(
     await u(t, "auth-login-url", {
       redirectUrl: e + "",
-      codeChallenge: r
+      codeChallenge: r,
+      state: n
     })
   );
-  if (!n || typeof n != "object" || !n.url || n.url.length === 0)
+  if (!a || typeof a != "object" || !a.url || a.url.length === 0)
     throw t.dispatchError("login-failed-to-fetch-url", "Failed to fetch login URL"), new Error("Failed to fetch login URL");
-  return n.url;
+  return a.url;
 }
 async function B(t, e, r) {
   const n = await c(
@@ -296,12 +297,12 @@ async function _(t, e) {
   const r = t.storage;
   r.clear();
   try {
-    const n = w(128);
+    const n = p(128);
     r.set("code-verifier", n), r.set("redirect-url-after-login", (e || t.currentUrl) + "");
     const a = I(t);
     r.set("callback-url", a + "");
-    const o = await O(n), s = w(64);
-    r.set("state", s), window.location.href = await N(t, a, o);
+    const o = await O(n), s = p(64);
+    r.set("state", s), window.location.href = await N(t, a, o, s);
   } catch (n) {
     throw t.dispatchError("login-failed", "Failed to start login flow: " + n.message), new Error("Failed to fetch login URL: " + n);
   }
@@ -314,7 +315,7 @@ async function G(t) {
   if (!n.has("frontend-login"))
     return;
   if (n.get("state") !== r) {
-    t.dispatchError("login-state-mismatch", "State mismatch, either not our request or CSRF attack; ignoring");
+    t.dispatchError("login-state-mismatch", "State mismatch, either not our request or CSRF attack; ignoring"), e.clear();
     return;
   }
   const a = n.get("code");
@@ -410,9 +411,9 @@ class K {
         e(!1);
         return;
       }
-      if (p(r)) {
+      if (y(r)) {
         if (await h(this.context)) {
-          e(!p(r));
+          e(!y(r));
           return;
         }
         e(!1);
@@ -440,7 +441,7 @@ class K {
    * Returns the current user, if the user is authenticated.
    */
   async getUser() {
-    return y(this.context);
+    return w(this.context);
   }
   /**
    * Returns the profile information for the current user, if the user is authenticated.
@@ -450,7 +451,7 @@ class K {
    * Those claims will be automatically available in the user object.
    */
   async getProfile() {
-    return y(this.context);
+    return w(this.context);
   }
   /**
    * Returns the guard for the current user, if present.
