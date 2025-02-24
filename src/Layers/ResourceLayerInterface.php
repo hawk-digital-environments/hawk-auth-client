@@ -8,6 +8,7 @@ namespace Hawk\AuthClient\Layers;
 use Hawk\AuthClient\Resources\Value\Resource;
 use Hawk\AuthClient\Resources\Value\ResourceBuilder;
 use Hawk\AuthClient\Resources\Value\ResourceConstraints;
+use Hawk\AuthClient\Resources\Value\ResourceList;
 use Hawk\AuthClient\Users\Value\User;
 
 interface ResourceLayerInterface
@@ -24,7 +25,7 @@ interface ResourceLayerInterface
      * Returns a list of all resources. If constraints are provided, filters the list.
      *
      * @param ResourceConstraints|null $constraints Optional constraints to filter the list.
-     * @return iterable
+     * @return ResourceList
      */
     public function getAll(ResourceConstraints|null $constraints = null): iterable;
 
