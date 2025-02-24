@@ -10,6 +10,7 @@
     "build": "vite build",
     "watch": "vite build --watch"
   },
+  "homepage": "https://github.com/HAWK-Digital-Environments/hawk-auth-client/tree/main/frontend",
   "keywords": [
     "Auth",
     "OAuth",
