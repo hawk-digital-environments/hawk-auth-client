@@ -10,7 +10,7 @@ on:
       - 'tests/**'
       - 'composer.json'
       - 'examples/**'
-      - '.github/workflows/main.yml'
+      - '.github/workflows/php.yml'
 
 permissions:
   contents: write
@@ -57,7 +57,7 @@ jobs:
     name: Release
     steps:
       - uses: actions/checkout@v4
-              
+
       - uses: TriPSs/conventional-changelog-action@v5
         with:
           version-file: './composer.json'
