@@ -51,6 +51,9 @@ jobs:
         with:
           files: .phpunit.coverage/coverage-clover.xml
           token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   release:
     runs-on: ubuntu-latest
