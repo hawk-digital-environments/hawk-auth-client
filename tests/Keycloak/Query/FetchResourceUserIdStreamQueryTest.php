@@ -30,6 +30,9 @@ class FetchResourceUserIdStreamQueryTest extends KeycloakQueryTestCase
 		"scopes": [
 			"post-updates"
 		]
+	},
+	{
+		"id": "3cb3fda0-8580-43e1-a6cf-20e0ef07c125"
 	}
 ]
 ';
@@ -60,12 +63,14 @@ class FetchResourceUserIdStreamQueryTest extends KeycloakQueryTestCase
 
         $result = iterator_to_array($this->api->fetchResourceUserIdStream($resource, $cache));
 
-        $this->assertCount(2, $result);
+        $this->assertCount(3, $result);
 
         $this->assertEquals('3cb3fda0-8580-43e1-a6cf-20e0ef07c85a', (string)$result[0][0]);
         $this->assertEquals(new ResourceScopes('post-updates', 'read-public'), $result[0][1]);
         $this->assertEquals('3cb3fda0-8580-43e1-a6cf-20e0ef07c123', (string)$result[1][0]);
         $this->assertEquals(new ResourceScopes('post-updates'), $result[1][1]);
+        $this->assertEquals('3cb3fda0-8580-43e1-a6cf-20e0ef07c125', (string)$result[2][0]);
+        $this->assertEquals(new ResourceScopes(), $result[2][1]);
     }
 
 }

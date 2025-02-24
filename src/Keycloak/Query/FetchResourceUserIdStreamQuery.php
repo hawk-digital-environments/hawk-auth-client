@@ -36,7 +36,7 @@ class FetchResourceUserIdStreamQuery extends AbstractChunkedQuery
 
     #[\Override] protected function dataToItem(mixed $dataItem): array
     {
-        return [new Uuid($dataItem['id']), new ResourceScopes(...$dataItem['scopes'])];
+        return [new Uuid($dataItem['id']), new ResourceScopes(...($dataItem['scopes'] ?? []))];
     }
 
     #[\Override] protected function getCacheKey(): string

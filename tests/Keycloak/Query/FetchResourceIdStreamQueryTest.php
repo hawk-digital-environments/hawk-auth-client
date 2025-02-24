@@ -10,6 +10,7 @@ use Hawk\AuthClient\Keycloak\KeycloakApiClient;
 use Hawk\AuthClient\Keycloak\Query\FetchResourceIdStreamQuery;
 use Hawk\AuthClient\Resources\Value\ResourceConstraints;
 use Hawk\AuthClient\Tests\TestUtils\DummyUuid;
+use Hawk\AuthClient\Util\Uuid;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -83,7 +84,7 @@ class FetchResourceIdStreamQueryTest extends KeycloakQueryTestCase
     #[DataProvider('provideTestItDoesFetchResourceListData')]
     public function testItDoesFetchResourceList(ResourceConstraints|null $constraints, array $expectedQuery): void
     {
-        $expectedResult = [new DummyUuid(1), new DummyUuid(2), new DummyUuid(3)];
+        $expectedResult = [new Uuid(new DummyUuid(1)), new Uuid(new DummyUuid(2)), new Uuid(new DummyUuid(3))];
         $response = $this->createStreamResponse(json_encode($expectedResult));
         $cache = $this->createMock(CacheAdapterInterface::class);
         $cache->expects($this->once())

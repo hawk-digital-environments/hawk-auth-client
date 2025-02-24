@@ -7,6 +7,7 @@ namespace Hawk\AuthClient\Keycloak\Query;
 
 use GuzzleHttp\ClientInterface;
 use Hawk\AuthClient\Resources\Value\ResourceConstraints;
+use Hawk\AuthClient\Util\Uuid;
 use Psr\Http\Message\ResponseInterface;
 
 class FetchResourceIdStreamQuery extends AbstractChunkedQuery
@@ -34,7 +35,7 @@ class FetchResourceIdStreamQuery extends AbstractChunkedQuery
 
     #[\Override] protected function dataToItem(mixed $dataItem): mixed
     {
-        return $dataItem;
+        return new Uuid($dataItem);
     }
 
     #[\Override] protected function getCacheKey(): string
