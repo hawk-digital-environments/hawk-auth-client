@@ -1,5 +1,8 @@
 # HAWK Auth Client
 
+[![codecov](https://codecov.io/gh/HAWK-Digital-Environments/hawk-auth-client/graph/badge.svg?token=ZKQH8LR31E)](https://codecov.io/gh/HAWK-Digital-Environments/hawk-auth-client)
+[![Create new Release (PHP)](https://github.com/HAWK-Digital-Environments/hawk-auth-client/actions/workflows/php.yml/badge.svg)](https://github.com/HAWK-Digital-Environments/hawk-auth-client/actions/workflows/php.yml)
+
 A comprehensive authentication and authorization library that wraps around the Keycloak REST API (
 using [hawk-keycloak-auth-server](https://github.com/HAWK-Digital-Environments/hawk-keycloak-auth-server) for additional
 features). The library provides a sophisticated way to build microservices with secure authentication, authorization,
@@ -103,10 +106,14 @@ $client = new AuthClient(
 The library includes several example implementations:
 
 - [stateful-auth](examples/stateful-auth/index.php): Session-based authentication
+- [stateful-auth-force-login](examples/stateful-auth-force-login/index.php): Force login with session-based
+  authentication
 - [stateless-auth](examples/stateless-auth/index.php): Token-based API authentication
+- [user-reading](examples/user-reading/index.php): Options for reading users
 - [user-profile](examples/user-profile/index.php): Profile management
 - [frontend-api](examples/frontend-api/index.html): Frontend integration
-- [oauth-flow](examples/oauth-flow/index.php): OAuth authentication flow
+- [oauth-flow](examples/oauth-flow/index.php): OAuth authentication flow using the League OAuth2 client
+- [manage-resources](examples/manage-resources/index.php): Resource management
 
 Each example demonstrates a specific use case with detailed comments and working code.
 
