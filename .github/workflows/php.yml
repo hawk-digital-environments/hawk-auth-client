@@ -46,13 +46,17 @@ jobs:
         run: composer run test:unit:coverage:clover
 
       - name: Upload coverage to Codecov
+        if: ${{ matrix.php-versions }} == '8.4'
         uses: codecov/codecov-action@v5
         with:
           files: .phpunit.coverage/coverage-clover.xml
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Release
-        uses: TriPSs/conventional-changelog-action@v5
+            
+  release:
+    runs-on: ubuntu-latest
+    name: Release
+    steps:
+      - uses: TriPSs/conventional-changelog-action@v5
         with:
           version-file: './composer.json'
           github-token: ${{ secrets.github_token }}
