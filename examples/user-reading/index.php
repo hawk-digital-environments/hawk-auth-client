@@ -11,25 +11,9 @@ This example shows multiple use cases of interacting with the users known in the
 Those features are out of scope for normal "authentication", but allow the usage of keycloak as a full user handling backend.
 ');
 
-Examples::bootstrap(static function () {
-    Examples::includeComposerAutoload();
-
-    // This creates a new connection with the Keycloak instance.
-    // getenv() is used to get the environment variables, you can also use $_ENV or $_SERVER or hardcode the values (NOT RECOMMENDED).
-    // The variables are currently defined in the docker-compose.yml file.
-    $client = new AuthClient(
-        redirectUrl: Examples::getPageUrl() . '/callback',
-        publicKeycloakUrl: getenv('PUBLIC_KEYCLOAK_URL'),
-        realm: getenv('REALM'),
-        clientId: getenv('CLIENT_ID'),
-        clientSecret: getenv('CLIENT_SECRET'),
-        // This is optional, if you want to talk with Keycloak on another url directly than the user. E.g. in a docker environment.
-        internalKeycloakUrl: empty(getenv('INTERNAL_KEYCLOAK_URL')) ? null : getenv('INTERNAL_KEYCLOAK_URL'),
-    );
-
-    // This will pass along the auth object into our routs below (implementation specific, your framework might do this differently).
-    return [$client];
-});
+// This example uses stateful authentication (session-based) which you can learn more about in the "stateful-auth" example.
+// This means the user stays logged in across page loads using a session cookie.
+Examples::bootstrapStatefulAuth();
 
 Examples::route('GET', '/all', function (AuthClient $client) {
     renderBackToListLink();

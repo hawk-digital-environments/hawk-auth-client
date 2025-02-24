@@ -151,14 +151,14 @@ Examples::route('GET', '/edit', static function (AuthClient $client, StatefulAut
 Examples::route('GET', '/', static function (AuthClient $client, StatefulAuth $auth) {
     Examples::showDescription();
 
-    echo '<p>Click <a href="' . Examples::getPageUrl() . '/define">here</a> to define some example fields.</p>';
-    echo '<p>Click <a href="' . Examples::getPageUrl() . '/edit">here</a> to edit your profile.</p>';
-
     $user = $auth->getUser();
     if (!$user) {
         echo '<p>You are currently not logged in, to see a profile you need to <a href="' . Examples::getPageUrl() . '/login">login</a> first.</p>';
         return;
     }
+
+    echo '<p>Click <a href="' . Examples::getPageUrl() . '/define">here</a> to define some example fields.</p>';
+    echo '<p>Click <a href="' . Examples::getPageUrl() . '/edit">here</a> to edit your profile.</p>';
 
     // You can access the user profile in two ways:
     // By default, using the $user->getProfile() method, you will get the profile as the user sees it.

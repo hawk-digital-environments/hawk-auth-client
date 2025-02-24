@@ -20,6 +20,19 @@ final class Examples
     private static string|null $currentPagePath = null;
     private static string|null $currentRoute = null;
 
+    /**
+     * A generic context to store data inside the examples.
+     * This is basically a global variable, but without tainting the global namespace.
+     * @var array
+     */
+    public static array $context = [];
+
+    /**
+     * A semantic feature to show the title of the example at the header of the file.
+     *
+     * @param string $title
+     * @return void
+     */
     public static function title(string $title): void
     {
         self::$title = $title;
@@ -50,6 +63,34 @@ final class Examples
     public static function bootstrap(callable $callback): void
     {
         self::$bootstrap = $callback;
+    }
+
+    /**
+     * This function is used to bootstrap the stateless authentication.
+     * It should keep the examples that do not focus on authentication clean and simple.
+     * If you want to learn more about what this function does, take a look at the "stateless-auth" example.
+     * @return void
+     */
+    public static function bootstrapStatelessAuth(): void
+    {
+        self::$bootstrap = static function () {
+            self::includeComposerAutoload();
+
+            $client = new AuthClient(
+                redirectUrl: self::getPageUrl() . '/callback',
+                publicKeycloakUrl: getenv('PUBLIC_KEYCLOAK_URL'),
+                realm: getenv('REALM'),
+                clientId: getenv('CLIENT_ID'),
+                clientSecret: getenv('CLIENT_SECRET'),
+                internalKeycloakUrl: empty(getenv('INTERNAL_KEYCLOAK_URL')) ? null : getenv('INTERNAL_KEYCLOAK_URL'),
+            );
+
+            session_start();
+
+            $auth = $client->statelessAuth();
+
+            return [$client, $auth];
+        };
     }
 
     /**
