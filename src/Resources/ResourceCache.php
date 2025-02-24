@@ -66,7 +66,7 @@ class ResourceCache extends AbstractEntityCache
      * Returns a lazy stream of resource IDs that match the given constraints.
      *
      * @param ResourceConstraints|null $constraints
-     * @return iterable<string>
+     * @return iterable<Uuid>
      */
     public function getResourceIdStream(ResourceConstraints|null $constraints): iterable
     {
