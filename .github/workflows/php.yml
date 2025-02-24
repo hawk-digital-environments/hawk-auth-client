@@ -51,11 +51,13 @@ jobs:
         with:
           files: .phpunit.coverage/coverage-clover.xml
           token: ${{ secrets.CODECOV_TOKEN }}
-            
+
   release:
     runs-on: ubuntu-latest
     name: Release
     steps:
+      - uses: actions/checkout@v4
+              
       - uses: TriPSs/conventional-changelog-action@v5
         with:
           version-file: './composer.json'

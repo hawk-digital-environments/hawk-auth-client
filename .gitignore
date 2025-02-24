@@ -36,3 +36,8 @@ docker-compose.override.yml
 
 # Frontend
 /frontend/node_modules
+
+# Codecov
+codecov
+codecov.SHA256SUM
+codecov.SHA256SUM.sig
