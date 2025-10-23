@@ -1,3 +1,12 @@
+## [1.2.1](https://github.com/hawk-digital-environments/hawk-auth-client/compare/v1.2.0...v1.2.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* ensure to publish the correct commit ([a62806f](https://github.com/hawk-digital-environments/hawk-auth-client/commit/a62806fc252d293916f5815128daa2353e04b093))
+
+
+
 # [1.2.0](https://github.com/hawk-digital-environments/hawk-auth-client/compare/v1.1.1...v1.2.0) (2025-10-23)
 
 
