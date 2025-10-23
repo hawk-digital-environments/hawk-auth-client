@@ -30,7 +30,7 @@ class FetchProfileDataQueryTest extends KeycloakQueryTestCase
 				"displayName": "${username}",
 				"required": true,
 				"readOnly": true,
-				"validators": {
+				"validations": {
 					"username-prohibited-characters": {
 						"ignore.empty.value": true
 					},
@@ -53,7 +53,7 @@ class FetchProfileDataQueryTest extends KeycloakQueryTestCase
 				"displayName": "${email}",
 				"required": false,
 				"readOnly": false,
-				"validators": {
+				"validations": {
 					"multivalued": {
 						"max": "1"
 					},
@@ -72,7 +72,7 @@ class FetchProfileDataQueryTest extends KeycloakQueryTestCase
 				"displayName": "${firstName}",
 				"required": false,
 				"readOnly": false,
-				"validators": {
+				"validations": {
 					"person-name-prohibited-characters": {
 						"ignore.empty.value": true
 					},
@@ -91,7 +91,7 @@ class FetchProfileDataQueryTest extends KeycloakQueryTestCase
 				"displayName": "${lastName}",
 				"required": false,
 				"readOnly": false,
-				"validators": {
+				"validations": {
 					"person-name-prohibited-characters": {
 						"ignore.empty.value": true
 					},

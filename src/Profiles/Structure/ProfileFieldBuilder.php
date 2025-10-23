@@ -291,7 +291,7 @@ class ProfileFieldBuilder extends ProfileField
      */
     public function setValidator(string $validatorKey, mixed $value): static
     {
-        $this->validators->setValue($validatorKey, $value);
+        $this->validations->setValue($validatorKey, $value);
         return $this;
     }
 

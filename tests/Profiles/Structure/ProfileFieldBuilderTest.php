@@ -241,7 +241,7 @@ class ProfileFieldBuilderTest extends TestCase
     public function testItCanSetTheDoubleValidator(mixed $min, mixed $max, array $expected): void
     {
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validators', ['double' => $expected]);
+        $data->expects($this->once())->method('setAttr')->with('validations', ['double' => $expected]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setDoubleValidator($min, $max);
     }
@@ -258,7 +258,7 @@ class ProfileFieldBuilderTest extends TestCase
     public function testItCanSetTheIntegerValidator(mixed $min, mixed $max, array $expected): void
     {
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validators', ['integer' => $expected]);
+        $data->expects($this->once())->method('setAttr')->with('validations', ['integer' => $expected]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setIntegerValidator($min, $max);
     }
@@ -274,7 +274,7 @@ class ProfileFieldBuilderTest extends TestCase
     public function testItCanSetEmailValidator(int|null $maxLocalLength, array $expected): void
     {
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validators', ['email' => $expected]);
+        $data->expects($this->once())->method('setAttr')->with('validations', ['email' => $expected]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setEmailValidator($maxLocalLength);
     }
@@ -282,7 +282,7 @@ class ProfileFieldBuilderTest extends TestCase
     public function testItCanSetDataValidator(): void
     {
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validators', ['iso-date' => []]);
+        $data->expects($this->once())->method('setAttr')->with('validations', ['iso-date' => []]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setDateValidator();
     }
@@ -300,7 +300,7 @@ class ProfileFieldBuilderTest extends TestCase
     public function testItCanSetMultiValueValidator(int|null $min, int|null $max, array $expected): void
     {
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validators', ['multi-value' => $expected]);
+        $data->expects($this->once())->method('setAttr')->with('validations', ['multi-value' => $expected]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setMultiValueValidator($min, $max);
     }
@@ -309,7 +309,7 @@ class ProfileFieldBuilderTest extends TestCase
     {
         $options = ['foo', 'bar', 'baz'];
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validators', ['options' => ['options' => $options]]);
+        $data->expects($this->once())->method('setAttr')->with('validations', ['options' => ['options' => $options]]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setOptionsValidator($options);
     }
@@ -318,7 +318,7 @@ class ProfileFieldBuilderTest extends TestCase
     {
         $pattern = '/^foo/';
         $data = $this->createMock(ProfileFieldData::class);
-        $data->expects($this->once())->method('setAttr')->with('validators', ['pattern' => ['pattern' => $pattern, 'error-message' => '']]);
+        $data->expects($this->once())->method('setAttr')->with('validations', ['pattern' => ['pattern' => $pattern, 'error-message' => '']]);
         $sut = new ProfileFieldBuilder('fullName', 'name', $data, $this->createStub(ProfileStructureBuilder::class));
         $sut->setPatternValidator($pattern);
     }

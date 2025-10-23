@@ -12,7 +12,7 @@ class ProfileField implements \Stringable, \JsonSerializable
 {
     protected string $fullName;
     protected string $name;
-    protected AssocListBasedValue $validators;
+    protected AssocListBasedValue $validations;
     protected AbstractProfileElementData $data;
     protected AssocListBasedValue $annotations;
 
@@ -26,7 +26,7 @@ class ProfileField implements \Stringable, \JsonSerializable
         $this->name = $name;
         $this->data = $data;
         $this->annotations = new AssocListBasedValue($data, 'annotations');
-        $this->validators = new AssocListBasedValue($data, 'validations');
+        $this->validations = new AssocListBasedValue($data, 'validations');
     }
 
     /**
@@ -154,7 +154,7 @@ class ProfileField implements \Stringable, \JsonSerializable
      */
     public function getValidation(string $validatorKey): mixed
     {
-        return $this->validators->getValue($validatorKey);
+        return $this->validations->getValue($validatorKey);
     }
 
     /**
@@ -164,7 +164,7 @@ class ProfileField implements \Stringable, \JsonSerializable
      */
     public function getValidations(): array
     {
-        return $this->validators->getBaseValue();
+        return $this->validations->getBaseValue();
     }
 
     /**

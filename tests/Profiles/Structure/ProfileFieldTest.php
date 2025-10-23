@@ -54,7 +54,7 @@ class ProfileFieldTest extends TestCase
                 'required' => true,
                 'readOnly' => false,
                 'annotations' => $annotations,
-                'validators' => $validations
+                'validations' => $validations
             ]);
         $fieldData = new ProfileFieldData($data, 'baseKey');
         $sut = new ProfileField('fullName', 'name', $fieldData);
