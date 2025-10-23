@@ -1,0 +1,127 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'composer.json'
+      - 'frontend/**'
+      - 'examples/**'
+      - '.github/workflows/release.yml'
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  test-php:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2
+      matrix:
+        php-versions: [ 8.3, 8.4 ]
+    name: Test on PHP ${{ matrix.php-versions }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: intl, mbstring
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.composer/cache
+          key: php-${{ matrix.php-versions }}-composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install composer dependencies
+        run: composer update
+
+      - name: Run PHPunit
+        run: composer run test:unit:coverage:clover
+
+      - name: Upload coverage to Codecov
+        if: ${{ matrix.php-versions == '8.4' }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: .phpunit.coverage/coverage-clover.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    name: Build Frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend/dist/
+
+  create-changelog:
+    runs-on: ubuntu-latest
+    name: Create Changelog
+    needs: [ test-php, build-frontend ]
+    outputs:
+      skipped: ${{ steps.changelog.outputs.skipped }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: TriPSs/conventional-changelog-action@v5
+        id: changelog
+        with:
+          version-file: 'composer.json,./frontend/package.json'
+          github-token: ${{ secrets.github_token }}
+
+  publish-npm:
+    runs-on: ubuntu-latest
+    name: Publish to NPM
+    needs: create-changelog
+    if: needs.create-changelog.outputs.skipped == 'false'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend/dist
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Update NPM
+        run: npm install -g npm@latest
+
+      - name: Publish to NPM
+        working-directory: ./frontend
+        run: npm publish --access public
