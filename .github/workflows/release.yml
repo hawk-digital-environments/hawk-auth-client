@@ -107,6 +107,8 @@ jobs:
     if: needs.create-changelog.outputs.skipped == 'false'
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Download build artifact
         uses: actions/download-artifact@v4
