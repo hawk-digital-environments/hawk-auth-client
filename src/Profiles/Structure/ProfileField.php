@@ -26,7 +26,7 @@ class ProfileField implements \Stringable, \JsonSerializable
         $this->name = $name;
         $this->data = $data;
         $this->annotations = new AssocListBasedValue($data, 'annotations');
-        $this->validators = new AssocListBasedValue($data, 'validators');
+        $this->validators = new AssocListBasedValue($data, 'validations');
     }
 
     /**

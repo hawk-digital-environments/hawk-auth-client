@@ -21,7 +21,7 @@
     ".": {
       "types": "./dist/index.d.ts",
       "require": "./dist/hawk-auth-client.umd.js",
-      "import": "./dist/hawk-auth-client.es.js"
+      "import": "./dist/hawk-auth-client.mjs"
     }
   },
   "author": "",
