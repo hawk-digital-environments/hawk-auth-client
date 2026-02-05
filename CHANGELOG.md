@@ -1,3 +1,12 @@
+## [1.2.2](https://github.com/hawk-digital-environments/hawk-auth-client/compare/v1.2.1...v1.2.2) (2025-10-23)
+
+
+### Bug Fixes
+
+* add repository to package.json ([72bf37c](https://github.com/hawk-digital-environments/hawk-auth-client/commit/72bf37c00b127c309e6283877fa2a0ff7e736e89))
+
+
+
 ## [1.2.1](https://github.com/hawk-digital-environments/hawk-auth-client/compare/v1.2.0...v1.2.1) (2025-10-23)
 
 
