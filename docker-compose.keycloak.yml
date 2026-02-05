@@ -1,5 +1,5 @@
 services:
-  examples:
+  php:
     networks:
       - hawk_keycloak_net
       - default
@@ -11,7 +11,7 @@ services:
       - CLIENT_SECRET=RHQjrfnuMcYDJqepveiGNDH45ZtpFrLv
       - REALM=dev
       - PUBLIC_KEYCLOAK_URL=http://localhost:8088
-      - INTERNAL_KEYCLOAK_URL=http://keycloak:8080
+      - INTERNAL_KEYCLOAK_URL=http://keycloak.hawk.docker:8080
 networks:
   hawk_keycloak_net:
     external: true

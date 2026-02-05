@@ -46,7 +46,7 @@ determineDockerComposeExecutable() {
 	local COMPOSE_VERSION
 	COMPOSE_VERSION=$(docker compose version)
 
-	if [[ ${COMPOSE_VERSION} == *v2* ]]; then
+	if [[ ${COMPOSE_VERSION} == *"version v"* ]]; then
 		echo "docker compose"
 		return
 	fi

@@ -1,8 +1,19 @@
-import {AuthClientContext, AuthClientStorage, StorageKey, storageKeys} from "./types";
-import {extractResponseData} from "./util";
-import {logoutLocal} from "./auth";
+import {AuthClientContext, AuthClientStorage, StorageKey, storageKeys} from './types';
+import {extractResponseData} from './util';
+import {logoutLocal} from './auth';
 
 export function createStorage(baseKey?: string): AuthClientStorage {
+    // sessionStorage is only available in browser environments, so if it does not exist,
+    // will return a no-op storage implementation
+    if (typeof sessionStorage === 'undefined') {
+        return {
+            clear: () => void 0,
+            remove: (key: StorageKey) => void 0,
+            set: (key: StorageKey, value: string) => void 0,
+            get: (key: StorageKey): string | null => null
+        };
+    }
+    
     baseKey = baseKey || 'hawk_auth_client_';
     const getRealKey = (key: StorageKey) => baseKey + key;
     return {

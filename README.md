@@ -118,7 +118,7 @@ The library includes several example implementations:
 Each example demonstrates a specific use case with detailed comments and working code.
 
 The examples come with their own `docker-compose.yml` file you can use to start them locally.
-Just run `docker-compose up` in the example directory and open the `http://localhost:8099` URL in your browser.
+Just run `docker-compose up` (or `bin/env up` for more features) in the example directory and open the `http://localhost:8099` URL in your browser.
 Note, that you must modify the environment variables in the `docker-compose.yml` file to match your Keycloak setup.
 
 Alternatively, if you are using

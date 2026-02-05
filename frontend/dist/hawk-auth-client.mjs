@@ -64,14 +64,14 @@ function g(t, e, r) {
   return t.status === 404 && e.dispatchError("missing-optional-feature", `The feature "${r}" is not enabled in your api.`), t;
 }
 function A(t, e) {
-  const r = e.errorHandler ?? ((s, i) => console.error("Auth Client error:", s, i)), n = (s, i) => {
+  const r = e.errorHandler ?? ((i, s) => console.error("Auth Client error:", i, s)), n = (i, s) => {
     new CustomEvent("error", {
       detail: {
-        error: s,
-        message: i
+        error: i,
+        message: s
       },
       cancelable: !0
-    }).defaultPrevented || r(s, i);
+    }).defaultPrevented || r(i, s);
   }, a = L();
   return {
     get currentUrl() {
@@ -80,10 +80,10 @@ function A(t, e) {
     get endpointUrl() {
       return new URL(e.endpointUrl || this.currentUrl.href);
     },
-    dispatchEvent: (s, i) => {
+    dispatchEvent: (i, s) => {
       t.dispatchEvent(
-        i instanceof Event ? i : new CustomEvent(s, {
-          detail: i,
+        s instanceof Event ? s : new CustomEvent(i, {
+          detail: s,
           cancelable: !0
         })
       );
@@ -93,6 +93,16 @@ function A(t, e) {
   };
 }
 function L(t) {
+  if (typeof sessionStorage > "u")
+    return {
+      clear: () => {
+      },
+      remove: (r) => {
+      },
+      set: (r, n) => {
+      },
+      get: (r) => null
+    };
   t = t || "hawk_auth_client_";
   const e = (r) => t + r;
   return {
@@ -132,7 +142,7 @@ async function R(t) {
 function T(t) {
   return btoa(String.fromCharCode.apply(null, new Uint8Array(t))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-async function O(t) {
+async function S(t) {
   const e = await R(t);
   return T(e);
 }
@@ -154,14 +164,14 @@ async function w(t) {
     }
   return Object.defineProperty(e, "profile", {
     get: async function() {
-      return await S(t);
+      return await O(t);
     }
   }), e;
 }
 function f(t) {
   return t.replace(/[-_](.)/g, (e, r) => r.toUpperCase());
 }
-async function S(t) {
+async function O(t) {
   var a;
   const e = await c(
     g(
@@ -175,14 +185,14 @@ async function S(t) {
   const r = ((a = e == null ? void 0 : e.structure) == null ? void 0 : a.attributesLocal) ?? {};
   for (const o in r)
     if (r.hasOwnProperty(o)) {
-      const s = f(o);
-      e.hasOwnProperty(s) || (e[s] = e.attributes[r[o]] ?? void 0);
+      const i = f(o);
+      e.hasOwnProperty(i) || (e[i] = e.attributes[r[o]] ?? void 0);
     }
   const n = (e == null ? void 0 : e.additionalData) ?? {};
   for (const o in n)
     if (n.hasOwnProperty(o)) {
-      const s = f(o);
-      e.hasOwnProperty(s) || (e[s] = n[o]);
+      const i = f(o);
+      e.hasOwnProperty(i) || (e[i] = n[o]);
     }
   return e;
 }
@@ -207,8 +217,8 @@ function j(t, e) {
 }
 function D(t, ...e) {
   const r = (n, a) => {
-    const o = n.replace(/^\//, ""), s = a.replace(/^\//, "");
-    if (o === s || j(o, s))
+    const o = n.replace(/^\//, ""), i = a.replace(/^\//, "");
+    if (o === i || j(o, i))
       return !0;
   };
   for (const n of e)
@@ -301,8 +311,8 @@ async function _(t, e) {
     r.set("code-verifier", n), r.set("redirect-url-after-login", (e || t.currentUrl) + "");
     const a = I(t);
     r.set("callback-url", a + "");
-    const o = await O(n), s = p(64);
-    r.set("state", s), window.location.href = await N(t, a, o, s);
+    const o = await S(n), i = p(64);
+    r.set("state", i), window.location.href = await N(t, a, o, i);
   } catch (n) {
     throw t.dispatchError("login-failed", "Failed to start login flow: " + n.message), new Error("Failed to fetch login URL: " + n);
   }
@@ -339,8 +349,8 @@ async function G(t) {
     t.dispatchError("login-failed-to-fetch-token", "Failed to fetch token");
     return;
   }
-  const s = e.get("redirect-url-after-login");
-  e.remove("code-verifier"), e.remove("callback-url"), e.remove("redirect-url-after-login"), e.set("trigger-event-after-redirect", "login"), window.location.href = s;
+  const i = e.get("redirect-url-after-login");
+  e.remove("code-verifier"), e.remove("callback-url"), e.remove("redirect-url-after-login"), e.set("trigger-event-after-redirect", "login"), window.location.href = i;
 }
 async function $(t, e) {
   const r = new URL((e || t.currentUrl) + ""), n = (a) => {
@@ -371,8 +381,8 @@ async function E(t, e, r) {
   const n = () => {
     const o = r || {};
     o.headers = o.headers || {};
-    const s = t.storage.get("token");
-    return s !== null && (o.headers.Authorization = "Bearer " + s), o;
+    const i = t.storage.get("token");
+    return i !== null && (o.headers.Authorization = "Bearer " + i), o;
   }, a = await fetch(e, n());
   if (a.status === 401) {
     if (!await h(t))

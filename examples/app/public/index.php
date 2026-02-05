@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Hawk\AuthClient\Auth\StatefulAuth;
 use Hawk\AuthClient\AuthClient;
+use Hawk\AuthClient\Cache\NullCacheAdapter;
 
 define('SERVER_URL', $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST']);
 const VENDOR_AUTOLOAD_PATH = __DIR__ . '/../vendor/autoload.php';
@@ -83,6 +84,7 @@ final class Examples
                 clientId: getenv('CLIENT_ID'),
                 clientSecret: getenv('CLIENT_SECRET'),
                 internalKeycloakUrl: empty(getenv('INTERNAL_KEYCLOAK_URL')) ? null : getenv('INTERNAL_KEYCLOAK_URL'),
+                cache: new NullCacheAdapter()
             );
 
             session_start();
@@ -253,12 +255,20 @@ final class Examples
      */
     public static function handle(): void
     {
-        $givenRoute = empty($_GET['route']) ? 'index' : $_GET['route'];
-        $pagePath = strtok($givenRoute, '/');
+        $projectPath = $_SERVER['DOCKER_SERVICE_ABS_PATH'] ?? '/';
+        $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
+        $currentPath = explode('?', $currentPath, 2)[0];
+        $realPath = $currentPath;
+        if (str_starts_with($currentPath, $projectPath)) {
+            $realPath = substr($currentPath, strlen($projectPath));
+        }
+        
+        $pagePath = strtok($realPath, '/');
+        
         $route = strtok('');
         $route = $route === false ? '' : $route;
-
-        if ($pagePath === 'index') {
+        
+        if ($pagePath === false) {
             self::showIndex();
         }
 

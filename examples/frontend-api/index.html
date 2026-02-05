@@ -64,6 +64,7 @@
 <div>
     <strong>READ demo-resource</strong>: ${(await auth.getGuard().hasAnyResourceScope('demo-resource', 'read')) ? 'GRANTED' : 'DENIED'}<br>
     <strong>WRITE demo-resource</strong>: ${(await auth.getGuard().hasAnyResourceScope('demo-resource', 'write')) ? 'GRANTED' : 'DENIED'}<br>
+    <strong>WRITE demo-resource</strong>: ${(await auth.getGuard().hasAnyResourceScope('app:workspace', 'delete')) ? 'GRANTED' : 'DENIED'}<br>
 </div>
 `
         container.querySelector('#logout').addEventListener('click', async (e) => {
